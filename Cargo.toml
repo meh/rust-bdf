@@ -1,0 +1,13 @@
+[package]
+name    = "bdf"
+version = "0.1.0"
+
+authors = ["meh. <meh@schizofreni.co>"]
+license = "WTFPL"
+
+description = "BDF format handling."
+repository  = "https://github.com/meh/rust-bdf"
+keywords    = ["font", "bdf"]
+
+[dependencies]
+bit-set = "*"
