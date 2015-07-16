@@ -39,16 +39,24 @@ impl Bitmap {
 
 	/// Gets a bit from the map.
 	pub fn get(&self, x: u32, y: u32) -> bool {
-		self.bits.contains(&((x * self.width + y) as usize))
+		if y >= self.height || x >= self.width {
+			panic!("out of bounds");
+		}
+
+		self.bits.contains(&((y * self.width + x) as usize))
 	}
 
 	/// Sets a bit of the map.
 	pub fn set(&mut self, x: u32, y: u32, value: bool) {
+		if y >= self.height || x >= self.width {
+			panic!("out of bounds");
+		}
+
 		if value {
-			self.bits.insert((x * self.width + y) as usize);
+			self.bits.insert((y * self.width + x) as usize);
 		}
 		else {
-			self.bits.remove(&((x * self.width + y) as usize));
+			self.bits.remove(&((y * self.width + x) as usize));
 		}
 	}
 }
