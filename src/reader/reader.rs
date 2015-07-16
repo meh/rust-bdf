@@ -1,7 +1,7 @@
 use std::io::{Read, BufRead, BufReader, Lines};
 use std::{char, usize};
 
-use {Error, Entry, BoundingBox, Bitmap};
+use {Error, Entry, BoundingBox, Bitmap, Property};
 
 /// The font reader.
 pub struct Reader<T: Read> {
@@ -80,11 +80,13 @@ impl<T: Read> Reader<T> {
 					return Err(Error::MissingValue(id.to_owned()));
 				}
 
-				return Ok(Entry::FontBoundingBox(BoundingBox::new(
-					try!(split[0].parse()),
-					try!(split[1].parse()),
-					try!(split[2].parse()),
-					try!(split[3].parse()))));
+				return Ok(Entry::FontBoundingBox(BoundingBox {
+					width: try!(split[0].parse()),
+					height: try!(split[1].parse()),
+
+					x: try!(split[2].parse()),
+					y: try!(split[3].parse())
+				}));
 			}
 
 			return Err(Error::MissingValue(id.to_owned()));
@@ -166,11 +168,13 @@ impl<T: Read> Reader<T> {
 				self.width  = try!(split[0].parse());
 				self.height = try!(split[1].parse());
 
-				return Ok(Entry::BoundingBox(BoundingBox::new(
-					try!(split[0].parse()),
-					try!(split[1].parse()),
-					try!(split[2].parse()),
-					try!(split[3].parse()))));
+				return Ok(Entry::BoundingBox(BoundingBox {
+					width: try!(split[0].parse()),
+					height: try!(split[1].parse()),
+
+					x: try!(split[2].parse()),
+					y: try!(split[3].parse())
+				}));
 			}
 
 			return Err(Error::MissingValue(id.to_owned()));
@@ -212,7 +216,7 @@ impl<T: Read> Reader<T> {
 		}
 
 		if let Some(rest) = rest {
-			return Ok(Entry::Property(id.to_owned(), rest.to_owned()));
+			return Ok(Entry::Property(id.to_owned(), Property::parse(rest)));
 		}
 
 		Ok(Entry::Unknown(id.to_owned()))

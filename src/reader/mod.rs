@@ -5,7 +5,7 @@ use std::io::Read;
 use std::fs::File;
 use std::path::Path;
 
-use {Error, Entry, Font, Property, Glyph, font};
+use {Error, Entry, Font, Glyph, font};
 
 /// Create a `Reader` from a `Read`.
 pub fn new<T: Read>(stream: T) -> Reader<T> {
@@ -19,7 +19,7 @@ pub fn open<T: AsRef<Path>>(path: T) -> Result<Font, Error> {
 
 /// Read a BDF stream into a `Font`.
 pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
-	let mut font   = Font::empty();
+	let mut font   = Default::default();
 	let mut reader = new(stream);
 
 	let mut in_font  = false;
@@ -62,7 +62,7 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 				}
 
 				if let Entry::Property(name, value) = entry {
-					font.properties_mut().insert(name, Property::parse(&value));
+					font.properties_mut().insert(name, value);
 
 					continue;
 				}
