@@ -1,3 +1,4 @@
+use std::ops::{Deref, DerefMut};
 use bit_set::BitSet;
 
 #[derive(Clone, Debug)]
@@ -41,5 +42,19 @@ impl Bitmap {
 		else {
 			self.bits.remove(&((x * self.width + y) as usize));
 		}
+	}
+}
+
+impl Deref for Bitmap {
+	type Target = BitSet;
+
+	fn deref(&self) -> &BitSet {
+		&self.bits
+	}
+}
+
+impl DerefMut for Bitmap {
+	fn deref_mut(&mut self) -> &mut BitSet {
+		&mut self.bits
 	}
 }
