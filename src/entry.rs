@@ -1,7 +1,7 @@
 use {BoundingBox, Bitmap, Property};
 
 /// The possible entries in BDF.
-#[derive(Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Entry {
 	/// `STARTFONT` marks the beginning of the font declaration and contains
 	/// the BDF version.
