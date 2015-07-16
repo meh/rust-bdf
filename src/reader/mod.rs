@@ -128,8 +128,8 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 				Entry::Size(pt, x, y) =>
 					font.set_size(font::Size { pt: pt, x: x, y: y }),
 
-				Entry::Chars(len) =>
-					font.set_len(len),
+				Entry::Chars(..) =>
+					(),
 
 				Entry::FontBoundingBox(bbx) =>
 					font.set_bounds(Some(bbx)),

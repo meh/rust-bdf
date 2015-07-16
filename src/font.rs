@@ -35,7 +35,6 @@ pub struct Font {
 	version: Option<String>,
 
 	size:   Size,
-	len:    usize,
 	bounds: Option<BoundingBox>,
 
 	comments:   Vec<String>,
@@ -52,7 +51,6 @@ impl Default for Font {
 			version: None,
 
 			size:   Default::default(),
-			len:    0,
 			bounds: Default::default(),
 
 			comments:   Vec::new(),
@@ -111,16 +109,6 @@ impl Font {
 	/// Sets the size.
 	pub fn set_size(&mut self, size: Size) {
 		self.size = size;
-	}
-
-	/// Gets the number of characters stored.
-	pub fn len(&self) -> usize {
-		self.len
-	}
-
-	/// Sets the number of characters stored.
-	pub fn set_len(&mut self, len: usize) {
-		self.len = len;
 	}
 
 	/// Gets the default bounding box.
