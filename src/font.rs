@@ -64,12 +64,12 @@ impl Default for Font {
 
 impl Font {
 	/// Create a new font with the given name and content-version.
-	pub fn new(name: String, version: Option<String>) -> Self {
+	pub fn new<T: Into<String>>(name: T, version: Option<T>) -> Self {
 		Font {
-			name:    name,
-			version: version,
+			name:    name.into(),
+			version: version.map(|v| v.into()),
 
-			.. Font::empty()
+			.. Default::default()
 		}
 	}
 
@@ -79,8 +79,8 @@ impl Font {
 	}
 
 	/// Sets the BDF format version.
-	pub fn set_format(&mut self, format: String) {
-		self.format = format;
+	pub fn set_format<T: Into<String>>(&mut self, format: T) {
+		self.format = format.into();
 	}
 
 	/// Gets the name.
@@ -89,8 +89,8 @@ impl Font {
 	}
 
 	/// Sets the name.
-	pub fn set_name(&mut self, name: String) {
-		self.name = name;
+	pub fn set_name<T: Into<String>>(&mut self, name: T) {
+		self.name = name.into();
 	}
 
 	/// Gets the content-version.
@@ -99,8 +99,8 @@ impl Font {
 	}
 
 	/// Sets the content-version.
-	pub fn set_version(&mut self, version: Option<String>) {
-		self.version = version;
+	pub fn set_version<T: Into<String>>(&mut self, version: Option<T>) {
+		self.version = version.map(|v| v.into());
 	}
 
 	/// Gets the size.
