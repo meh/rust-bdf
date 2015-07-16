@@ -2,7 +2,7 @@ use std::ops::{Deref, DerefMut};
 use bit_set::BitSet;
 
 /// The bitmap of a glyph.
-#[derive(Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Bitmap {
 	width:  u32,
 	height: u32,
