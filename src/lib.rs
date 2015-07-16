@@ -28,5 +28,5 @@ pub use self::error::Error;
 mod reader;
 pub use self::reader::{open, read, Reader};
 
-//mod writer;
-//pub use self::writer::Writer;
+mod writer;
+pub use self::writer::{save, write, Writer};
