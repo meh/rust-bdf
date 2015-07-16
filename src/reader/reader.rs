@@ -50,7 +50,12 @@ impl<T: Read> Reader<T> {
 		}
 
 		if id == "COMMENT" {
-			return Ok(Entry::Comment(rest.unwrap_or("").to_owned()));
+			if let Some(rest) = rest {
+				return Ok(Entry::Comment((&rest[1..rest.len()-1]).to_owned()));
+			}
+			else {
+				return Ok(Entry::Comment("".to_owned()));
+			}
 		}
 
 		if id == "FONT" {
