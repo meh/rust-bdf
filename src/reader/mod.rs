@@ -7,15 +7,20 @@ use std::path::Path;
 
 use {Error, Entry, Font, Property, Glyph, font};
 
+/// Create a `Reader` from a `Read`.
+pub fn new<T: Read>(stream: T) -> Reader<T> {
+	Reader::from(stream)
+}
+
 /// Open a BDF file and read it into a `Font`.
 pub fn open<T: AsRef<Path>>(path: T) -> Result<Font, Error> {
-	read(try!(File::open(path.as_ref())))
+	read(try!(File::open(path)))
 }
 
 /// Read a BDF stream into a `Font`.
-pub fn read<T: Read>(mut reader: T) -> Result<Font, Error> {
+pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 	let mut font   = Font::empty();
-	let mut reader = Reader::from(&mut reader);
+	let mut reader = new(stream);
 
 	let mut in_font  = false;
 	let mut in_props = false;
