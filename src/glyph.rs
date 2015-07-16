@@ -35,8 +35,8 @@ impl Glyph {
 	}
 
 	/// Sets the name.
-	pub fn set_name(&mut self, name: String) {
-		self.name = name;
+	pub fn set_name<T: Into<String>>(&mut self, name: T) {
+		self.name = name.into();
 	}
 
 	/// Gets the codepoint.
