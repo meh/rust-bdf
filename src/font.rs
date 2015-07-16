@@ -15,6 +15,17 @@ pub struct Size {
 	pub y: u16,
 }
 
+impl Default for Size {
+	fn default() -> Self {
+		Size {
+			pt: 0,
+
+			x: 0,
+			y: 0,
+		}
+	}
+}
+
 /// A BDF font.
 #[derive(Debug)]
 pub struct Font {
@@ -32,25 +43,26 @@ pub struct Font {
 	glyphs:     HashMap<char, Glyph>,
 }
 
-impl Font {
-	/// Create an empty font.
-	pub fn empty() -> Self {
+impl Default for Font {
+	fn default() -> Self {
 		Font {
 			format: "2.2".to_owned(),
 
 			name:    String::new(),
 			version: None,
 
-			size:   Size { pt: 0, x: 0, y: 0 },
+			size:   Default::default(),
 			len:    0,
-			bounds: BoundingBox::new(0, 0, 0, 0),
+			bounds: Default::default(),
 
 			comments:   Vec::new(),
 			properties: HashMap::new(),
 			glyphs:     HashMap::new(),
 		}
 	}
+}
 
+impl Font {
 	/// Create a new font with the given name and content-version.
 	pub fn new(name: String, version: Option<String>) -> Self {
 		Font {
