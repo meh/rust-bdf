@@ -77,12 +77,12 @@ mod tests {
 
 	use {Entry, BoundingBox, Bitmap, Property, writer};
 
-	pub fn assert(entry: &Entry, string: &str) {
+	pub fn assert(entry: Entry, string: &str) {
 		let mut output = Vec::new();
 
 		{
 			let mut writer = writer::new(&mut output);
-			writer.entry(entry).unwrap();
+			writer.entry(&entry).unwrap();
 		}
 
 		assert_eq!(from_utf8(&output).unwrap(), string);
@@ -90,88 +90,88 @@ mod tests {
 
 	#[test]
 	fn start_font() {
-		assert(&Entry::StartFont("2.2".to_owned()), "STARTFONT 2.2\n");
+		assert(Entry::StartFont("2.2".to_owned()), "STARTFONT 2.2\n");
 	}
 
 	#[test]
 	fn comment() {
-		assert(&Entry::Comment("test".to_owned()), "COMMENT \"test\"\n");
+		assert(Entry::Comment("test".to_owned()), "COMMENT \"test\"\n");
 	}
 
 	#[test]
 	fn content_version() {
-		assert(&Entry::ContentVersion("1.0.0".to_owned()), "CONTENTVERSION 1.0.0\n");
+		assert(Entry::ContentVersion("1.0.0".to_owned()), "CONTENTVERSION 1.0.0\n");
 	}
 
 	#[test]
 	fn font() {
-		assert(&Entry::Font("-Gohu-GohuFont-Bold-R-Normal--11-80-100-100-C-60-ISO10646-1".to_owned()),
+		assert(Entry::Font("-Gohu-GohuFont-Bold-R-Normal--11-80-100-100-C-60-ISO10646-1".to_owned()),
 			"FONT -Gohu-GohuFont-Bold-R-Normal--11-80-100-100-C-60-ISO10646-1\n");
 	}
 
 	#[test]
 	fn size() {
-		assert(&Entry::Size(16, 100, 100), "SIZE 16 100 100\n");
+		assert(Entry::Size(16, 100, 100), "SIZE 16 100 100\n");
 	}
 
 	#[test]
 	fn chars() {
-		assert(&Entry::Chars(42), "CHARS 42\n");
+		assert(Entry::Chars(42), "CHARS 42\n");
 	}
 
 	#[test]
 	fn font_bounding_box() {
-		assert(&Entry::FontBoundingBox(BoundingBox { width: 6, height: 11, x: 0, y: -2 }),
+		assert(Entry::FontBoundingBox(BoundingBox { width: 6, height: 11, x: 0, y: -2 }),
 			"FONTBOUNDINGBOX 6 11 0 -2\n");
 	}
 
 	#[test]
 	fn end_font() {
-		assert(&Entry::EndFont, "ENDFONT\n");
+		assert(Entry::EndFont, "ENDFONT\n");
 	}
 
 	#[test]
 	fn start_properties() {
-		assert(&Entry::StartProperties(23), "STARTPROPERTIES 23\n");
+		assert(Entry::StartProperties(23), "STARTPROPERTIES 23\n");
 	}
 
 	#[test]
 	fn property() {
-		assert(&Entry::Property("FOUNDRY".to_owned(), Property::String("GohuFont".to_owned())),
+		assert(Entry::Property("FOUNDRY".to_owned(), Property::String("GohuFont".to_owned())),
 			"FOUNDRY \"GohuFont\"\n");
 
-		assert(&Entry::Property("X_HEIGHT".to_owned(), Property::Integer(4)),
+		assert(Entry::Property("X_HEIGHT".to_owned(), Property::Integer(4)),
 			"X_HEIGHT 4\n");
 	}
 
 	#[test]
 	fn end_properties() {
-		assert(&Entry::EndProperties, "ENDPROPERTIES\n");
+		assert(Entry::EndProperties, "ENDPROPERTIES\n");
 	}
 
 	#[test]
 	fn start_char() {
-		assert(&Entry::StartChar("<control>".to_owned()), "STARTCHAR <control>\n");
+		assert(Entry::StartChar("<control>".to_owned()), "STARTCHAR <control>\n");
 	}
 
 	#[test]
 	fn encoding() {
-		assert(&Entry::Encoding('\u{0}'), "ENCODING 0\n");
+		assert(Entry::Encoding('\u{0}'), "ENCODING 0\n");
 	}
 
 	#[test]
 	fn scalable_width() {
-		assert(&Entry::ScalableWidth(392, 0), "SWIDTH 392 0\n");
+		assert(Entry::ScalableWidth(392, 0), "SWIDTH 392 0\n");
 	}
 
 	#[test]
 	fn device_width() {
-		assert(&Entry::DeviceWidth(6, 0), "DWIDTH 6 0\n");
+		assert(Entry::DeviceWidth(6, 0), "DWIDTH 6 0\n");
 	}
 
 	#[test]
 	fn bounding_box() {
-		assert(&Entry::BoundingBox(BoundingBox { width: 6, height: 11, x: 0, y: -2 }),
+		assert(Entry::BoundingBox(BoundingBox { width: 6, height: 11, x: 0, y: -2 }),
 			"BBX 6 11 0 -2\n");
 	}
 
@@ -181,7 +181,7 @@ mod tests {
 		bitmap.set(0, 0, true);
 		bitmap.set(1, 1, true);
 
-		assert(&Entry::Bitmap(bitmap),
+		assert(Entry::Bitmap(bitmap),
 			"BITMAP\n\
 			 80\n\
 			 40\n");
@@ -189,12 +189,12 @@ mod tests {
 
 	#[test]
 	fn end_char() {
-		assert(&Entry::EndChar, "ENDCHAR\n");
+		assert(Entry::EndChar, "ENDCHAR\n");
 	}
 
 	#[test]
 	#[should_panic]
 	fn unknown() {
-		assert(&Entry::Unknown("HUE".to_owned()), "");
+		assert(Entry::Unknown("HUE".to_owned()), "");
 	}
 }
