@@ -203,13 +203,13 @@ impl<T: Read> Reader<T> {
 			let height = if self.default_height == 0 { self.height } else { self.default_height };
 
 			let     rows = self.stream.by_ref().take(height).collect::<Vec<_>>();
-			let mut map  = Bitmap::new(width as u32, self.height as u32);
+			let mut map  = Bitmap::new(width as u32, height as u32);
 
 			for (y, row) in rows.into_iter().enumerate() {
 				let row = try!(usize::from_str_radix(try!(row).as_ref(), 16));
 
 				for x in 0 .. width {
-					map.set(x as u32, y as u32, row >> x & 0b1 == 1);
+					map.set((width - x - 1) as u32, y as u32, ((row >> x) & 1) == 1);
 				}
 			}
 
