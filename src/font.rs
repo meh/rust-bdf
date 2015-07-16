@@ -48,7 +48,7 @@ impl Default for Font {
 		Font {
 			format: "2.2".to_owned(),
 
-			name:    String::new(),
+			name:    "--------------".to_owned(),
 			version: None,
 
 			size:   Default::default(),
