@@ -1,4 +1,4 @@
-use {BoundingBox, Bitmap};
+use {BoundingBox, Bitmap, Property};
 
 /// The possible entries in BDF.
 #[derive(Clone, Debug)]
@@ -33,7 +33,7 @@ pub enum Entry {
 	StartProperties(usize),
 
 	/// Contains the name and value of a property.
-	Property(String, String),
+	Property(String, Property),
 
 	/// `ENDPROPERTIES` marks the end of the property declarations.
 	EndProperties,
