@@ -7,6 +7,9 @@ use {Error, Entry, BoundingBox, Bitmap, Property};
 pub struct Reader<T: Read> {
 	stream: Lines<BufReader<T>>,
 
+	default_width:  usize,
+	default_height: usize,
+
 	width:  usize,
 	height: usize,
 }
@@ -15,6 +18,9 @@ impl<T: Read> From<T> for Reader<T> {
 	fn from(stream: T) -> Reader<T> {
 		Reader {
 			stream: BufReader::with_capacity(1024, stream).lines(),
+
+			default_width:  0,
+			default_height: 0,
 
 			width:  0,
 			height: 0,
@@ -80,8 +86,11 @@ impl<T: Read> Reader<T> {
 					return Err(Error::MissingValue(id.to_owned()));
 				}
 
+				self.default_width  = try!(split[0].parse());
+				self.default_height = try!(split[1].parse());
+
 				return Ok(Entry::FontBoundingBox(BoundingBox {
-					width: try!(split[0].parse()),
+					width:  try!(split[0].parse()),
 					height: try!(split[1].parse()),
 
 					x: try!(split[2].parse()),
@@ -181,13 +190,20 @@ impl<T: Read> Reader<T> {
 		}
 
 		if id == "BITMAP" {
-			let     rows = self.stream.by_ref().take(self.height).collect::<Vec<_>>();
-			let mut map  = Bitmap::new(self.width as u32, self.height as u32);
+			if (self.default_width == 0 && self.width == 0) || (self.default_height == 0 && self.height == 0) {
+				return Err(Error::MissingValue(id.to_owned()));
+			}
+
+			let width  = if self.default_width == 0 { self.width } else { self.default_width };
+			let height = if self.default_height == 0 { self.height } else { self.default_height };
+
+			let     rows = self.stream.by_ref().take(height).collect::<Vec<_>>();
+			let mut map  = Bitmap::new(width as u32, self.height as u32);
 
 			for (y, row) in rows.into_iter().enumerate() {
 				let row = try!(usize::from_str_radix(try!(row).as_ref(), 16));
 
-				for x in 0 .. self.width {
+				for x in 0 .. width {
 					map.set(x as u32, y as u32, row >> x & 0b1 == 1);
 				}
 			}

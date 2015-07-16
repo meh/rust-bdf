@@ -103,7 +103,7 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 						glyph.set_device_width(x, y),
 
 					Entry::BoundingBox(bbx) =>
-						glyph.set_bounds(bbx),
+						glyph.set_bounds(Some(bbx)),
 
 					Entry::Bitmap(map) =>
 						glyph.set_map(map),
@@ -132,7 +132,7 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 					font.set_len(len),
 
 				Entry::FontBoundingBox(bbx) =>
-					font.set_bounds(bbx),
+					font.set_bounds(Some(bbx)),
 
 				_ =>
 					return Err(Error::MalformedFont)
