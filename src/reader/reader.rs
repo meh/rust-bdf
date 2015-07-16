@@ -10,8 +10,8 @@ pub struct Reader<T: Read> {
 	height: usize,
 }
 
-impl<T: Read> Reader<T> {
-	pub fn from(stream: T) -> Reader<T> {
+impl<T: Read> From<T> for Reader<T> {
+	fn from(stream: T) -> Reader<T> {
 		Reader {
 			stream: BufReader::with_capacity(1024, stream).lines(),
 
@@ -19,7 +19,9 @@ impl<T: Read> Reader<T> {
 			height: 0,
 		}
 	}
+}
 
+impl<T: Read> Reader<T> {
 	pub fn entry(&mut self) -> Result<Entry, Error> {
 		let line = try!(try!(self.stream.next().ok_or(Error::End)));
 
@@ -211,7 +213,7 @@ impl<T: Read> Reader<T> {
 			return Ok(Entry::Property(id.to_owned(), rest.to_owned()));
 		}
 
-		Err(Error::MissingValue(id.to_owned()))
+		Ok(Entry::Unknown(id.to_owned()))
 	}
 }
 
