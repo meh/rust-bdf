@@ -77,7 +77,7 @@ pub fn read<T: Read>(mut reader: T) -> Result<Font, Error> {
 
 			if in_char {
 				if let Entry::EndChar = entry {
-					font.glyphs_mut().insert(glyph.id(), glyph);
+					font.glyphs_mut().insert(glyph.codepoint(), glyph);
 
 					in_char = false;
 					glyph   = Glyph::empty();
@@ -86,8 +86,8 @@ pub fn read<T: Read>(mut reader: T) -> Result<Font, Error> {
 				}
 
 				match entry {
-					Entry::Encoding(id) =>
-						glyph.set_id(id),
+					Entry::Encoding(codepoint) =>
+						glyph.set_codepoint(codepoint),
 
 					Entry::ScalableWidth(x, y) =>
 						glyph.set_scalable_width(x, y),

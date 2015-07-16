@@ -3,8 +3,8 @@ use {BoundingBox, Bitmap};
 
 #[derive(Debug)]
 pub struct Glyph {
-	name: String,
-	id:   char,
+	name:      String,
+	codepoint: char,
 
 	scalable_width: (u32, u32),
 	device_width:   (u32, u32),
@@ -16,8 +16,8 @@ pub struct Glyph {
 impl Glyph {
 	pub fn empty() -> Self {
 		Glyph {
-			name: "".to_owned(),
-			id:   '\u{0}',
+			name:      "".to_owned(),
+			codepoint: '\u{0}',
 
 			scalable_width: (0, 0),
 			device_width:   (0, 0),
@@ -35,12 +35,12 @@ impl Glyph {
 		self.name = name;
 	}
 
-	pub fn id(&self) -> char {
-		self.id
+	pub fn codepoint(&self) -> char {
+		self.codepoint
 	}
 
-	pub fn set_id(&mut self, id: char) {
-		self.id = id;
+	pub fn set_codepoint(&mut self, codepoint: char) {
+		self.codepoint = codepoint;
 	}
 
 	pub fn scalable_width(&self) -> (u32, u32) {
