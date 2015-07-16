@@ -1,6 +1,7 @@
 use std::ops::{Deref, DerefMut};
 use bit_set::BitSet;
 
+/// The bitmap of a glyph.
 #[derive(Clone, Debug)]
 pub struct Bitmap {
 	width:  u32,
@@ -10,10 +11,12 @@ pub struct Bitmap {
 }
 
 impl Bitmap {
+	/// Creates an empty bitmap.
 	pub fn empty() -> Self {
 		Bitmap::new(0, 0)
 	}
 
+	/// Creates a bitmap of the given size.
 	pub fn new(width: u32, height: u32) -> Self {
 		Bitmap {
 			width:  width,
@@ -23,18 +26,22 @@ impl Bitmap {
 		}
 	}
 
+	/// Gets the width.
 	pub fn width(&self) -> u32 {
 		self.width
 	}
 
+	/// Gets the height.
 	pub fn height(&self) -> u32 {
 		self.height
 	}
 
+	/// Gets a bit from the map.
 	pub fn get(&self, x: u32, y: u32) -> bool {
 		self.bits.contains(&((x * self.width + y) as usize))
 	}
 
+	/// Sets a bit of the map.
 	pub fn set(&mut self, x: u32, y: u32, value: bool) {
 		if value {
 			self.bits.insert((x * self.width + y) as usize);

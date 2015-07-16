@@ -3,6 +3,7 @@ use std::{char, usize};
 
 use {Error, Entry, BoundingBox, Bitmap};
 
+/// The font reader.
 pub struct Reader<T: Read> {
 	stream: Lines<BufReader<T>>,
 
@@ -22,6 +23,7 @@ impl<T: Read> From<T> for Reader<T> {
 }
 
 impl<T: Read> Reader<T> {
+	/// Get the next entry.
 	pub fn entry(&mut self) -> Result<Entry, Error> {
 		let line = try!(try!(self.stream.next().ok_or(Error::End)));
 

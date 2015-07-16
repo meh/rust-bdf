@@ -1,3 +1,7 @@
+//! BDF font handler.
+
+#![warn(missing_docs)]
+
 extern crate bit_set;
 
 mod property;

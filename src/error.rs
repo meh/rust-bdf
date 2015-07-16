@@ -3,17 +3,33 @@ use std::error;
 use std::io;
 use std::num;
 
+/// Errors for `Reader` and `Writer`.
 pub enum Error {
+	/// A downstream IO error.
 	IO(io::Error),
+
+	/// A downstream parsing error.
 	Parse(num::ParseIntError),
 
+	/// `STARTFONT` is missing the format version.
 	MissingVersion,
+
+	/// An entry is missing a value.
 	MissingValue(String),
+
+	/// An unknown error.
 	Unknown,
+
+	/// Eof has been reached.
 	End,
 
+	/// The font declaration is malformed.
 	MalformedFont,
+
+	/// The property declarations are malformed.
 	MalformedProperties,
+
+	/// The character declaration is malformed.
 	MalformedChar,
 }
 
