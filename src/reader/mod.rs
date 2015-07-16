@@ -150,3 +150,126 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 		}
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use {Entry, BoundingBox, Bitmap, Property, reader};
+
+	pub fn assert(string: &str, entry: Entry) {
+		let input = reader::new(string.as_bytes()).last().unwrap();
+
+		assert_eq!(input, entry);
+	}
+
+	#[test]
+	fn start_font() {
+		assert("STARTFONT 2.2\n", Entry::StartFont("2.2".to_owned()));
+	}
+
+	#[test]
+	fn comment() {
+		assert("COMMENT \"hue\"\n", Entry::Comment("hue".to_owned()));
+	}
+
+	#[test]
+	fn content_version() {
+		assert("CONTENTVERSION 1.0.0\n", Entry::ContentVersion("1.0.0".to_owned()));
+	}
+
+	#[test]
+	fn font() {
+		assert("FONT -Gohu-GohuFont-Bold-R-Normal--11-80-100-100-C-60-ISO10646-1\n",
+			Entry::Font("-Gohu-GohuFont-Bold-R-Normal--11-80-100-100-C-60-ISO10646-1".to_owned()));
+	}
+
+	#[test]
+	fn size() {
+		assert("SIZE 16 100 100\n", Entry::Size(16, 100, 100));
+	}
+
+	#[test]
+	fn chars() {
+		assert("CHARS 42\n", Entry::Chars(42));
+	}
+
+	#[test]
+	fn font_bounding_box() {
+		assert("FONTBOUNDINGBOX 6 11 0 -2\n",
+			Entry::FontBoundingBox(BoundingBox { width: 6, height: 11, x: 0, y: -2 }));
+	}
+
+	#[test]
+	fn end_font() {
+		assert("ENDFONT\n", Entry::EndFont);
+	}
+
+	#[test]
+	fn start_properties() {
+		assert("STARTPROPERTIES 23\n", Entry::StartProperties(23));
+	}
+
+	#[test]
+	fn property() {
+		assert("FOUNDRY \"GohuFont\"\n",
+			Entry::Property("FOUNDRY".to_owned(), Property::String("GohuFont".to_owned())));
+
+		assert("X_HEIGHT 4\n",
+			Entry::Property("X_HEIGHT".to_owned(), Property::Integer(4)));
+	}
+
+	#[test]
+	fn end_properties() {
+		assert("ENDPROPERTIES\n", Entry::EndProperties);
+	}
+
+	#[test]
+	fn start_char() {
+		assert("STARTCHAR <control>\n", Entry::StartChar("<control>".to_owned()));
+	}
+
+	#[test]
+	fn encoding() {
+		assert("ENCODING 0\n", Entry::Encoding('\u{0}'));
+	}
+
+	#[test]
+	fn scalable_width() {
+		assert("SWIDTH 392 0\n", Entry::ScalableWidth(392, 0));
+	}
+
+	#[test]
+	fn device_width() {
+		assert("DWIDTH 6 0\n", Entry::DeviceWidth(6, 0), );
+	}
+
+	#[test]
+	fn bounding_box() {
+		assert("BBX 6 11 0 -2\n",
+			Entry::BoundingBox(BoundingBox { width: 6, height: 11, x: 0, y: -2 }));
+	}
+
+	#[test]
+	fn bitmap() {
+		let mut bitmap = Bitmap::new(8, 2);
+		bitmap.set(0, 0, true);
+		bitmap.set(1, 1, true);
+
+		assert(
+			"BBX 8 2 0 0\n\
+			 BITMAP\n\
+			 80\n\
+			 40\n",
+
+			 Entry::Bitmap(bitmap));
+	}
+
+	#[test]
+	fn end_char() {
+		assert("ENDCHAR\n", Entry::EndChar);
+	}
+
+	#[test]
+	fn unknown() {
+		assert("HUE", Entry::Unknown("HUE".to_owned()));
+	}
+}
