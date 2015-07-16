@@ -24,8 +24,8 @@ impl Glyph {
 			scalable_width: (0, 0),
 			device_width:   (0, 0),
 
-			bounds: BoundingBox::empty(),
-			map:    Bitmap::empty(),
+			bounds: Default::default(),
+			map:    Default::default(),
 		}
 	}
 
