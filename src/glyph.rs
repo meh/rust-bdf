@@ -10,7 +10,7 @@ pub struct Glyph {
 	scalable_width: (u32, u32),
 	device_width:   (u32, u32),
 
-	bounds: BoundingBox,
+	bounds: Option<BoundingBox>,
 	map:    Bitmap,
 }
 
@@ -70,12 +70,12 @@ impl Glyph {
 	}
 
 	/// Gets the bounds.
-	pub fn bounds(&self) -> &BoundingBox {
-		&self.bounds
+	pub fn bounds(&self) -> Option<&BoundingBox> {
+		self.bounds.as_ref()
 	}
 
 	/// Sets the bounds.
-	pub fn set_bounds(&mut self, bounds: BoundingBox) {
+	pub fn set_bounds(&mut self, bounds: Option<BoundingBox>) {
 		self.bounds = bounds;
 	}
 
