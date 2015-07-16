@@ -10,12 +10,13 @@ pub struct Bitmap {
 	bits: BitSet,
 }
 
-impl Bitmap {
-	/// Creates an empty bitmap.
-	pub fn empty() -> Self {
+impl Default for Bitmap {
+	fn default() -> Self {
 		Bitmap::new(0, 0)
 	}
+}
 
+impl Bitmap {
 	/// Creates a bitmap of the given size.
 	pub fn new(width: u32, height: u32) -> Self {
 		Bitmap {
