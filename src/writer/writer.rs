@@ -79,14 +79,39 @@ impl<T: Write> Writer<T> {
 				try!(self.stream.write_all("BITMAP\n".as_bytes()));
 
 				for y in 0 .. map.height() {
-					let mut value: usize = 0;
+					let mut value: u64 = 0;
 
 					for x in 0 .. map.width() {
 						value <<= 1;
 						value  |= if map.get(x, y) { 1 } else { 0 };
 					}
 
-					try!(self.stream.write_all(format!("{:02X}\n", value).as_bytes()));
+					let padding = if value & 0xffffffffffffff00 == 0 {
+						2
+					}
+					else if value & 0xffffffffffff00ff == 0 {
+						4
+					}
+					else if value & 0xffffffffff00ffff == 0 {
+						6
+					}
+					else if value & 0xffffffff00ffffff == 0 {
+						8
+					}
+					else if value & 0xffffff00ffffffff == 0 {
+						10
+					}
+					else if value & 0xffff00ffffffffff == 0 {
+						12
+					}
+					else if value & 0xff00ffffffffffff == 0 {
+						14
+					}
+					else {
+						16
+					};
+
+					try!(self.stream.write_all(format!("{:01$X}\n", value, padding).as_bytes()));
 				}
 			},
 
