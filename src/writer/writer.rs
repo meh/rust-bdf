@@ -86,8 +86,15 @@ impl<T: Write> Writer<T> {
 						value  |= if map.get(x, y) { 1 } else { 0 };
 					}
 
-					try!(self.stream.write_all(format!("{}{:X}\n",
-						if ((value as f64).log(16.0).ceil() as u64) % 2 == 0 { "" } else { "0" }, value).as_bytes()));
+					value <<= 8 - (map.width() % 8);
+
+					let hex = format!("{:X}\n", value);
+
+					if (hex.len() - 1) % 2 != 0 {
+						try!(self.stream.write_all(b"0"));
+					}
+
+					try!(self.stream.write_all(hex.as_bytes()));
 				}
 			},
 
