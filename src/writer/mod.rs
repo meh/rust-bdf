@@ -177,14 +177,75 @@ mod tests {
 
 	#[test]
 	fn bitmap() {
-		let mut bitmap = Bitmap::new(8, 2);
-		bitmap.set(0, 0, true);
+		let mut bitmap = Bitmap::new(6, 11);
+
+		// 00
+
+		// 70
 		bitmap.set(1, 1, true);
+		bitmap.set(2, 1, true);
+		bitmap.set(3, 1, true);
+
+		// D8
+		bitmap.set(0, 2, true);
+		bitmap.set(1, 2, true);
+		bitmap.set(3, 2, true);
+		bitmap.set(4, 2, true);
+
+		// D8
+		bitmap.set(0, 3, true);
+		bitmap.set(1, 3, true);
+		bitmap.set(3, 3, true);
+		bitmap.set(4, 3, true);
+
+		// F8
+		bitmap.set(0, 4, true);
+		bitmap.set(1, 4, true);
+		bitmap.set(2, 4, true);
+		bitmap.set(3, 4, true);
+		bitmap.set(4, 4, true);
+
+		// D8
+		bitmap.set(0, 5, true);
+		bitmap.set(1, 5, true);
+		bitmap.set(3, 5, true);
+		bitmap.set(4, 5, true);
+
+		// D8
+		bitmap.set(0, 6, true);
+		bitmap.set(1, 6, true);
+		bitmap.set(3, 6, true);
+		bitmap.set(4, 6, true);
+
+		// D8
+		bitmap.set(0, 7, true);
+		bitmap.set(1, 7, true);
+		bitmap.set(3, 7, true);
+		bitmap.set(4, 7, true);
+
+		// D8
+		bitmap.set(0, 8, true);
+		bitmap.set(1, 8, true);
+		bitmap.set(3, 8, true);
+		bitmap.set(4, 8, true);
+
+		// 00
+
+		// 00
 
 		assert(Entry::Bitmap(bitmap),
 			"BITMAP\n\
-			 80\n\
-			 40\n");
+			 00\n\
+			 70\n\
+			 D8\n\
+			 D8\n\
+			 F8\n\
+			 D8\n\
+			 D8\n\
+			 D8\n\
+			 D8\n\
+			 00\n\
+			 00\n");
 	}
 
 	#[test]
