@@ -1,19 +1,3 @@
-bdf
-===
-[![Build Status](https://travis-ci.org/meh/rust-bdf.svg?branch=master)](https://travis-ci.org/meh/rust-bdf)
-
-BDF handling library.
-
-```toml
-[dependencies]
-bdf = "*"
-```
-
-Example
--------
-This example will draw a given glyph in the given font.
-
-```rust
 extern crate bdf;
 
 use std::env;
@@ -39,4 +23,3 @@ fn main() {
 		print!("\n");
 	}
 }
-```
