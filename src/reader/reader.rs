@@ -17,7 +17,7 @@ pub struct Reader<T: Read> {
 impl<T: Read> From<T> for Reader<T> {
 	fn from(stream: T) -> Reader<T> {
 		Reader {
-			stream: BufReader::with_capacity(1024, stream).lines(),
+			stream: BufReader::new(stream).lines(),
 
 			default_width:  0,
 			default_height: 0,
