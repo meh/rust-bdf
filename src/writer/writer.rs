@@ -86,32 +86,8 @@ impl<T: Write> Writer<T> {
 						value  |= if map.get(x, y) { 1 } else { 0 };
 					}
 
-					let padding = if value & 0xffffffffffffff00 == 0 {
-						2
-					}
-					else if value & 0xffffffffffff00ff == 0 {
-						4
-					}
-					else if value & 0xffffffffff00ffff == 0 {
-						6
-					}
-					else if value & 0xffffffff00ffffff == 0 {
-						8
-					}
-					else if value & 0xffffff00ffffffff == 0 {
-						10
-					}
-					else if value & 0xffff00ffffffffff == 0 {
-						12
-					}
-					else if value & 0xff00ffffffffffff == 0 {
-						14
-					}
-					else {
-						16
-					};
-
-					try!(self.stream.write_all(format!("{:01$X}\n", value, padding).as_bytes()));
+					try!(self.stream.write_all(format!("{}{:X}\n",
+						if ((value as f64).log(16.0).ceil() as u64) % 2 == 0 { "" } else { "0" }, value).as_bytes()));
 				}
 			},
 
