@@ -1,5 +1,5 @@
 use std::io::{Read, BufRead, BufReader, Lines};
-use std::{char, usize};
+use std::{char, u64};
 
 use {Error, Entry, BoundingBox, Bitmap, Property};
 
@@ -206,7 +206,7 @@ impl<T: Read> Reader<T> {
 			let mut map  = Bitmap::new(width as u32, height as u32);
 
 			for (y, row) in rows.into_iter().enumerate() {
-				let row = try!(usize::from_str_radix(try!(row).as_ref(), 16));
+				let row = try!(u64::from_str_radix(try!(row).as_ref(), 16)) >> (8 - (width % 8));
 
 				for x in 0 .. width {
 					map.set((width - x - 1) as u32, y as u32, ((row >> x) & 1) == 1);
