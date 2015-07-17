@@ -42,7 +42,7 @@ impl<T: Write> Writer<T> {
 					bbx.width, bbx.height, bbx.x, bbx.y).as_bytes())),
 
 			&Entry::EndFont =>
-				try!(self.stream.write_all("ENDFONT\n".as_bytes())),
+				try!(self.stream.write_all(b"ENDFONT\n")),
 
 			&Entry::StartProperties(len) =>
 				try!(self.stream.write_all(format!("STARTPROPERTIES {}\n", len).as_bytes())),
@@ -76,7 +76,7 @@ impl<T: Write> Writer<T> {
 					bbx.width, bbx.height, bbx.x, bbx.y).as_bytes())),
 
 			&Entry::Bitmap(ref map) => {
-				try!(self.stream.write_all("BITMAP\n".as_bytes()));
+				try!(self.stream.write_all(b"BITMAP\n"));
 
 				for y in 0 .. map.height() {
 					let mut value: u64 = 0;
@@ -99,7 +99,7 @@ impl<T: Write> Writer<T> {
 			},
 
 			&Entry::EndChar =>
-				try!(self.stream.write_all("ENDCHAR\n".as_bytes())),
+				try!(self.stream.write_all(b"ENDCHAR\n")),
 
 			&Entry::Unknown(..) =>
 				unreachable!(),
