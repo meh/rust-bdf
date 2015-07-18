@@ -88,6 +88,16 @@ impl Glyph {
 	pub fn set_map(&mut self, map: Bitmap) {
 		self.map = map;
 	}
+
+	/// Create an iterator over the pixels which will yield `((x, y), value)`.
+	pub fn pixels(&self) -> PixelIter {
+		PixelIter {
+			x: 0,
+			y: 0,
+
+			map: &self.map,
+		}
+	}
 }
 
 impl Deref for Glyph {
@@ -101,5 +111,34 @@ impl Deref for Glyph {
 impl DerefMut for Glyph {
 	fn deref_mut(&mut self) -> &mut Bitmap {
 		&mut self.map
+	}
+}
+
+pub struct PixelIter<'a> {
+	x: u32,
+	y: u32,
+
+	map: &'a Bitmap,
+}
+
+impl<'a> Iterator for PixelIter<'a> {
+	type Item = ((u32, u32), bool);
+
+	fn next(&mut self) -> Option<<Self as Iterator>::Item> {
+		if self.x >= self.map.width() {
+			self.x  = 0;
+			self.y += 1;
+		}
+
+		if self.y >= self.map.height() {
+			return None;
+		}
+
+		let x = self.x;
+		let y = self.y;
+
+		self.x += 1;
+
+		Some(((x, y), self.map.get(x, y)))
 	}
 }
