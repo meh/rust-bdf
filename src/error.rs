@@ -14,11 +14,14 @@ pub enum Error {
 	/// `STARTFONT` is missing the format version.
 	MissingVersion,
 
+	/// There was no bounding box for a character.
+	MissingBoundingBox,
+
 	/// An entry is missing a value.
 	MissingValue(String),
 
 	/// An unknown error.
-	Unknown,
+	InvalidCodepoint,
 
 	/// Eof has been reached.
 	End,
@@ -65,17 +68,20 @@ impl error::Error for Error {
 			&Error::IO(ref err) =>
 				err.description(),
 
-			&Error::Parse(..) =>
-				"Parsing error.",
+			&Error::Parse(ref err) =>
+				error::Error::description(err),
 
 			&Error::MissingVersion =>
 				"Missing version from STARTFONT",
 
+			&Error::MissingBoundingBox =>
+				"Missing bounding box.",
+
 			&Error::MissingValue(..) =>
 				"Missing value for property.",
 
-			&Error::Unknown =>
-				"An unknown entry has been found.",
+			&Error::InvalidCodepoint =>
+				"An invalid codepoint has been found.",
 
 			&Error::End =>
 				"End of file reached.",
