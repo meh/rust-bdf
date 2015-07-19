@@ -1,7 +1,7 @@
 use std::io::{Read, BufRead, BufReader, Lines};
 use std::{char, u64};
 
-use {Error, Entry, BoundingBox, Bitmap, Property};
+use {Error, Entry, BoundingBox, Bitmap, Property, Direction};
 
 /// The font reader.
 pub struct Reader<T: Read> {
@@ -35,213 +35,295 @@ impl<T: Read> Reader<T> {
 				((&line[..]).trim(), None)
 		};
 
-		if id == "COMMENT" {
-			if let Some(rest) = rest {
-				return Ok(Entry::Comment((&rest[1..rest.len()-1]).to_owned()));
-			}
-			else {
-				return Ok(Entry::Comment("".to_owned()));
-			}
-		}
-
-		if id == "STARTFONT" {
-			if let Some(rest) = rest {
-				return Ok(Entry::StartFont(rest.to_owned()))
-			}
-
-			return Err(Error::MissingVersion);
-		}
-
-		if id == "FONT" {
-			if let Some(rest) = rest {
-				return Ok(Entry::Font(rest.to_owned()));
-			}
-
-			return Err(Error::MissingValue("FONT".to_owned()))
-		}
-
-		if id == "SIZE" {
-			if let Some(rest) = rest {
-				let split = rest.split(' ').collect::<Vec<_>>();
-
-				if split.len() != 3 {
-					return Err(Error::MissingValue(id.to_owned()));
+		match id {
+			"COMMENT" => {
+				if let Some(rest) = rest {
+					Ok(Entry::Comment(::property::extract(rest)))
 				}
-
-				return Ok(Entry::Size(
-					try!(split[0].parse()),
-					try!(split[1].parse()),
-					try!(split[2].parse())));
-			}
-
-			return Err(Error::MissingValue(id.to_owned()));
-		}
-
-		if id == "FONTBOUNDINGBOX" {
-			if let Some(rest) = rest {
-				let split = rest.split(' ').collect::<Vec<_>>();
-
-				if split.len() != 4 {
-					return Err(Error::MissingValue(id.to_owned()));
+				else {
+					Ok(Entry::Comment("".to_owned()))
 				}
+			},
 
-				let bbx = BoundingBox {
-					width:  try!(split[0].parse()),
-					height: try!(split[1].parse()),
+			"STARTFONT" => {
+				if let Some(rest) = rest {
+					Ok(Entry::StartFont(rest.to_owned()))
+				}
+				else {
+					Err(Error::MissingVersion)
+				}
+			},
 
-					x: try!(split[2].parse()),
-					y: try!(split[3].parse())
+			"FONT" => {
+				if let Some(rest) = rest {
+					Ok(Entry::Font(rest.to_owned()))
+				}
+				else {
+					Err(Error::MissingValue("FONT".to_owned()))
+				}
+			},
+
+			"SIZE" => {
+				if let Some(rest) = rest {
+					let split = rest.split(' ').collect::<Vec<_>>();
+
+					if split.len() != 3 {
+						return Err(Error::MissingValue(id.to_owned()));
+					}
+
+					Ok(Entry::Size(
+						try!(split[0].parse()),
+						try!(split[1].parse()),
+						try!(split[2].parse())))
+				}
+				else {
+					Err(Error::MissingValue(id.to_owned()))
+				}
+			},
+
+			"FONTBOUNDINGBOX" => {
+				if let Some(rest) = rest {
+					let split = rest.split(' ').collect::<Vec<_>>();
+
+					if split.len() != 4 {
+						return Err(Error::MissingValue(id.to_owned()));
+					}
+
+					let bbx = BoundingBox {
+						width:  try!(split[0].parse()),
+						height: try!(split[1].parse()),
+
+						x: try!(split[2].parse()),
+						y: try!(split[3].parse())
+					};
+
+					self.default = Some(bbx);
+
+					Ok(Entry::FontBoundingBox(bbx))
+				}
+				else {
+					Err(Error::MissingValue(id.to_owned()))
+				}
+			},
+
+			"CONTENTVERSION" => {
+				if let Some(rest) = rest {
+					Ok(Entry::ContentVersion(rest.to_owned()))
+				}
+				else {
+					Err(Error::MissingValue(id.to_owned()))
+				}
+			},
+
+			"CHARS" => {
+				if let Some(rest) = rest {
+					Ok(Entry::Chars(try!(rest.parse())))
+				}
+				else {
+					Err(Error::MissingValue(id.to_owned()))
+				}
+			},
+
+			"STARTCHAR" => {
+				if let Some(rest) = rest {
+					Ok(Entry::StartChar(rest.to_owned()))
+				}
+				else {
+					Err(Error::MissingValue(id.to_owned()))
+				}
+			},
+
+			"ENCODING" => {
+				if let Some(rest) = rest {
+					Ok(Entry::Encoding(
+						try!(char::from_u32(try!(rest.parse())).ok_or(Error::InvalidCodepoint))))
+				}
+				else {
+					Err(Error::MissingValue(id.to_owned()))
+				}
+			},
+
+			"METRICSSET" => {
+				if let Some(rest) = rest {
+					match rest {
+						"0" => Ok(Entry::Direction(Direction::Default)),
+						"1" => Ok(Entry::Direction(Direction::Alternate)),
+						"2" => Ok(Entry::Direction(Direction::Both)),
+						 _  => Err(Error::MissingValue(id.to_owned())),
+					}
+				}
+				else {
+					Err(Error::MissingValue(id.to_owned()))
+				}
+			},
+
+			"SWIDTH" => {
+				if let Some(rest) = rest {
+					let split = rest.split(' ').collect::<Vec<_>>();
+
+					if split.len() != 2 {
+						return Err(Error::MissingValue(id.to_owned()));
+					}
+
+					Ok(Entry::ScalableWidth(
+						try!(split[0].parse()),
+						try!(split[1].parse())))
+				}
+				else {
+					Err(Error::MissingValue(id.to_owned()))
+				}
+			},
+
+			"DWIDTH" => {
+				if let Some(rest) = rest {
+					let split = rest.split(' ').collect::<Vec<_>>();
+
+					if split.len() != 2 {
+						return Err(Error::MissingValue(id.to_owned()));
+					}
+
+					Ok(Entry::DeviceWidth(
+						try!(split[0].parse()),
+						try!(split[1].parse())))
+				}
+				else {
+					Err(Error::MissingValue(id.to_owned()))
+				}
+			},
+
+			"SWIDTH1" => {
+				if let Some(rest) = rest {
+					let split = rest.split(' ').collect::<Vec<_>>();
+
+					if split.len() != 2 {
+						return Err(Error::MissingValue(id.to_owned()));
+					}
+
+					Ok(Entry::AlternateScalableWidth(
+						try!(split[0].parse()),
+						try!(split[1].parse())))
+				}
+				else {
+					Err(Error::MissingValue(id.to_owned()))
+				}
+			},
+
+			"DWIDTH1" => {
+				if let Some(rest) = rest {
+					let split = rest.split(' ').collect::<Vec<_>>();
+
+					if split.len() != 2 {
+						return Err(Error::MissingValue(id.to_owned()));
+					}
+
+					Ok(Entry::AlternateDeviceWidth(
+						try!(split[0].parse()),
+						try!(split[1].parse())))
+				}
+				else {
+					Err(Error::MissingValue(id.to_owned()))
+				}
+			},
+
+			"VVECTOR" => {
+				if let Some(rest) = rest {
+					let split = rest.split(' ').collect::<Vec<_>>();
+
+					if split.len() != 2 {
+						return Err(Error::MissingValue(id.to_owned()));
+					}
+
+					Ok(Entry::Vector(
+						try!(split[0].parse()),
+						try!(split[1].parse())))
+				}
+				else {
+					Err(Error::MissingValue(id.to_owned()))
+				}
+			},
+
+			"BBX" => {
+				if let Some(rest) = rest {
+					let split = rest.split(' ').collect::<Vec<_>>();
+
+					if split.len() != 4 {
+						return Err(Error::MissingValue(id.to_owned()));
+					}
+
+					let bbx = BoundingBox {
+						width: try!(split[0].parse()),
+						height: try!(split[1].parse()),
+
+						x: try!(split[2].parse()),
+						y: try!(split[3].parse())
+					};
+
+					self.current = Some(bbx);
+
+					Ok(Entry::BoundingBox(bbx))
+				}
+				else {
+					Err(Error::MissingValue(id.to_owned()))
+				}
+			},
+
+			"BITMAP" => {
+				let (width, height) = if let Some(BoundingBox { width, height, .. }) = self.current {
+					(width, height)
+				}
+				else if let Some(BoundingBox { width, height, .. }) = self.default {
+					(width, height)
+				}
+				else {
+					return Err(Error::MissingBoundingBox);
 				};
 
-				self.default = Some(bbx);
+				let     rows = self.stream.by_ref().take(height as usize).collect::<Vec<_>>();
+				let mut map  = Bitmap::new(width, height);
 
-				return Ok(Entry::FontBoundingBox(bbx));
-			}
+				for (y, row) in rows.into_iter().enumerate() {
+					let row = try!(u64::from_str_radix(try!(row).as_ref(), 16)) >> (8 - (width % 8));
 
-			return Err(Error::MissingValue(id.to_owned()));
-		}
-
-		if id == "CONTENTVERSION" {
-			if let Some(rest) = rest {
-				return Ok(Entry::ContentVersion(rest.to_owned()));
-			}
-
-			return Err(Error::MissingValue(id.to_owned()));
-		}
-
-		if id == "CHARS" {
-			if let Some(rest) = rest {
-				return Ok(Entry::Chars(try!(rest.parse())));
-			}
-
-			return Err(Error::MissingValue(id.to_owned()));
-		}
-
-		if id == "STARTCHAR" {
-			if let Some(rest) = rest {
-				return Ok(Entry::StartChar(rest.to_owned()));
-			}
-
-			return Err(Error::MissingValue(id.to_owned()));
-		}
-
-		if id == "ENCODING" {
-			if let Some(rest) = rest {
-				return Ok(Entry::Encoding(
-					try!(char::from_u32(try!(rest.parse())).ok_or(Error::InvalidCodepoint))));
-			}
-
-			return Err(Error::MissingValue(id.to_owned()));
-		}
-
-		if id == "SWIDTH" {
-			if let Some(rest) = rest {
-				let split = rest.split(' ').collect::<Vec<_>>();
-
-				if split.len() != 2 {
-					return Err(Error::MissingValue(id.to_owned()));
+					for x in 0 .. width {
+						map.set(width - x - 1, y as u32, ((row >> x) & 1) == 1);
+					}
 				}
 
-				return Ok(Entry::ScalableWidth(
-					try!(split[0].parse()),
-					try!(split[1].parse())));
-			}
+				self.current = None;
 
-			return Err(Error::MissingValue(id.to_owned()));
-		}
+				Ok(Entry::Bitmap(map))
+			},
 
-		if id == "DWIDTH" {
-			if let Some(rest) = rest {
-				let split = rest.split(' ').collect::<Vec<_>>();
+			"ENDCHAR" => {
+				Ok(Entry::EndChar)
+			},
 
-				if split.len() != 2 {
-					return Err(Error::MissingValue(id.to_owned()));
+			"ENDFONT" => {
+				Ok(Entry::EndFont)
+			},
+
+			"STARTPROPERTIES" => {
+				if let Some(rest) = rest {
+					Ok(Entry::StartProperties(try!(rest.parse())))
 				}
-
-				return Ok(Entry::DeviceWidth(
-					try!(split[0].parse()),
-					try!(split[1].parse())));
-			}
-
-			return Err(Error::MissingValue(id.to_owned()));
-		}
-
-		if id == "BBX" {
-			if let Some(rest) = rest {
-				let split = rest.split(' ').collect::<Vec<_>>();
-
-				if split.len() != 4 {
-					return Err(Error::MissingValue(id.to_owned()));
+				else {
+					Err(Error::MissingValue(id.to_owned()))
 				}
+			},
 
-				let bbx = BoundingBox {
-					width: try!(split[0].parse()),
-					height: try!(split[1].parse()),
+			"ENDPROPERTIES" => {
+				Ok(Entry::EndProperties)
+			},
 
-					x: try!(split[2].parse()),
-					y: try!(split[3].parse())
-				};
-
-				self.current = Some(bbx);
-
-				return Ok(Entry::BoundingBox(bbx));
-			}
-
-			return Err(Error::MissingValue(id.to_owned()));
-		}
-
-		if id == "BITMAP" {
-			let (width, height) = if let Some(BoundingBox { width, height, .. }) = self.current {
-				(width, height)
-			}
-			else if let Some(BoundingBox { width, height, .. }) = self.default {
-				(width, height)
-			}
-			else {
-				return Err(Error::MissingBoundingBox);
-			};
-
-			let     rows = self.stream.by_ref().take(height as usize).collect::<Vec<_>>();
-			let mut map  = Bitmap::new(width, height);
-
-			for (y, row) in rows.into_iter().enumerate() {
-				let row = try!(u64::from_str_radix(try!(row).as_ref(), 16)) >> (8 - (width % 8));
-
-				for x in 0 .. width {
-					map.set(width - x - 1, y as u32, ((row >> x) & 1) == 1);
+			_ => {
+				if let Some(rest) = rest {
+					Ok(Entry::Property(id.to_owned(), Property::parse(rest)))
 				}
-			}
-
-			self.current = None;
-
-			return Ok(Entry::Bitmap(map));
+				else {
+					Ok(Entry::Unknown(id.to_owned()))
+				}
+			},
 		}
-
-		if id == "ENDCHAR" {
-			return Ok(Entry::EndChar);
-		}
-
-		if id == "ENDFONT" {
-			return Ok(Entry::EndFont);
-		}
-
-		if id == "STARTPROPERTIES" {
-			if let Some(rest) = rest {
-				return Ok(Entry::StartProperties(try!(rest.parse())));
-			}
-
-			return Err(Error::MissingValue(id.to_owned()));
-		}
-
-		if id == "ENDPROPERTIES" {
-			return Ok(Entry::EndProperties);
-		}
-
-		if let Some(rest) = rest {
-			return Ok(Entry::Property(id.to_owned(), Property::parse(rest)));
-		}
-
-		Ok(Entry::Unknown(id.to_owned()))
 	}
 }
 

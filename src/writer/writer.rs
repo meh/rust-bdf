@@ -1,6 +1,6 @@
 use std::io::{Write, BufWriter};
 
-use {Error, Entry, Property};
+use {Error, Entry, Property, Direction};
 
 /// The font writer.
 pub struct Writer<T: Write> {
@@ -23,7 +23,7 @@ impl<T: Write> Writer<T> {
 				try!(self.stream.write_all(format!("STARTFONT {}\n", string).as_bytes())),
 
 			&Entry::Comment(ref string) =>
-				try!(self.stream.write_all(format!("COMMENT \"{}\"\n", string).as_bytes())),
+				try!(self.stream.write_all(format!("COMMENT \"{}\"\n", string.replace("\"", "\"\"")).as_bytes())),
 
 			&Entry::ContentVersion(ref string) =>
 				try!(self.stream.write_all(format!("CONTENTVERSION {}\n", string).as_bytes())),
@@ -50,7 +50,7 @@ impl<T: Write> Writer<T> {
 			&Entry::Property(ref name, ref value) =>
 				match value {
 					&Property::String(ref string) =>
-						try!(self.stream.write_all(format!("{} \"{}\"\n", name, string).as_bytes())),
+						try!(self.stream.write_all(format!("{} \"{}\"\n", name, string.replace("\"", "\"\"")).as_bytes())),
 
 					&Property::Integer(value) =>
 						try!(self.stream.write_all(format!("{} {}\n", name, value).as_bytes())),
@@ -65,11 +65,32 @@ impl<T: Write> Writer<T> {
 			&Entry::Encoding(value) =>
 				try!(self.stream.write_all(format!("ENCODING {}\n", value as u32).as_bytes())),
 
+			&Entry::Direction(direction) =>
+				match direction {
+					Direction::Default =>
+						try!(self.stream.write_all(b"METRICSSET 0\n")),
+
+					Direction::Alternate =>
+						try!(self.stream.write_all(b"METRICSSET 1\n")),
+
+					Direction::Both =>
+						try!(self.stream.write_all(b"METRICSSET 2\n")),
+				},
+
 			&Entry::ScalableWidth(x, y) =>
 				try!(self.stream.write_all(format!("SWIDTH {} {}\n", x, y).as_bytes())),
 
 			&Entry::DeviceWidth(x, y) =>
 				try!(self.stream.write_all(format!("DWIDTH {} {}\n", x, y).as_bytes())),
+
+			&Entry::AlternateScalableWidth(x, y) =>
+				try!(self.stream.write_all(format!("SWIDTH1 {} {}\n", x, y).as_bytes())),
+
+			&Entry::AlternateDeviceWidth(x, y) =>
+				try!(self.stream.write_all(format!("DWIDTH1 {} {}\n", x, y).as_bytes())),
+
+			&Entry::Vector(x, y) =>
+				try!(self.stream.write_all(format!("VVECTOR {} {}\n", x, y).as_bytes())),
 
 			&Entry::BoundingBox(ref bbx) =>
 				try!(self.stream.write_all(format!("BBX {} {} {} {}\n",

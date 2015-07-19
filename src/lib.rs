@@ -13,6 +13,9 @@ pub use self::glyph::Glyph;
 mod bounding_box;
 pub use self::bounding_box::BoundingBox;
 
+mod direction;
+pub use self::direction::Direction;
+
 mod bitmap;
 pub use self::bitmap::Bitmap;
 
