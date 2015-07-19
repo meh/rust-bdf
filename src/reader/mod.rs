@@ -19,14 +19,14 @@ pub fn open<T: AsRef<Path>>(path: T) -> Result<Font, Error> {
 
 /// Read a BDF stream into a `Font`.
 pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
-	let mut font   = Default::default();
+	let mut font   = Font::default();
 	let mut reader = new(stream);
 
 	let mut in_font  = false;
 	let mut in_props = false;
 	let mut in_char  = false;
 
-	let mut glyph = Glyph::empty();
+	let mut glyph = Glyph::default();
 
 	loop {
 		let entry = try!(reader.entry());
@@ -39,6 +39,10 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 
 				if in_props {
 					return Err(Error::MalformedProperties);
+				}
+
+				if !font.validate() {
+					return Err(Error::MalformedFont);
 				}
 
 				return Ok(font);
@@ -84,10 +88,14 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 
 			if in_char {
 				if let Entry::EndChar = entry {
+					if !glyph.validate() {
+						return Err(Error::MalformedChar);
+					}
+
 					font.glyphs_mut().insert(glyph.codepoint(), glyph);
 
 					in_char = false;
-					glyph   = Glyph::empty();
+					glyph   = Glyph::default();
 
 					continue;
 				}
@@ -97,13 +105,22 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 						glyph.set_codepoint(codepoint),
 
 					Entry::ScalableWidth(x, y) =>
-						glyph.set_scalable_width(x, y),
+						glyph.set_scalable_width(Some((x, y))),
 
 					Entry::DeviceWidth(x, y) =>
-						glyph.set_device_width(x, y),
+						glyph.set_device_width(Some((x, y))),
+
+					Entry::AlternateScalableWidth(x, y) =>
+						glyph.set_alternate_scalable_width(Some((x, y))),
+
+					Entry::AlternateDeviceWidth(x, y) =>
+						glyph.set_alternate_device_width(Some((x, y))),
+
+					Entry::Vector(x, y) =>
+						glyph.set_vector(Some((x, y))),
 
 					Entry::BoundingBox(bbx) =>
-						glyph.set_bounds(Some(bbx)),
+						glyph.set_bounds(bbx),
 
 					Entry::Bitmap(map) =>
 						glyph.set_map(map),
@@ -116,7 +133,7 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 			}
 
 			match entry {
-				Entry::Comment(comment) =>
+				Entry::Comment(..) =>
 					(),
 
 				Entry::ContentVersion(version) =>
@@ -133,6 +150,21 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 
 				Entry::FontBoundingBox(bbx) =>
 					font.set_bounds(bbx),
+
+				Entry::ScalableWidth(x, y) =>
+					font.set_scalable_width(Some((x, y))),
+
+				Entry::DeviceWidth(x, y) =>
+					font.set_device_width(Some((x, y))),
+
+				Entry::AlternateScalableWidth(x, y) =>
+					font.set_alternate_scalable_width(Some((x, y))),
+
+				Entry::AlternateDeviceWidth(x, y) =>
+					font.set_alternate_device_width(Some((x, y))),
+
+				Entry::Vector(x, y) =>
+					font.set_vector(Some((x, y))),
 
 				_ =>
 					return Err(Error::MalformedFont)
@@ -153,7 +185,7 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 
 #[cfg(test)]
 mod tests {
-	use {Entry, BoundingBox, Bitmap, Property, reader};
+	use {Entry, BoundingBox, Bitmap, Property, Direction, reader};
 
 	pub fn assert(string: &str, entry: Entry) {
 		let input = reader::new(string.as_bytes()).last().unwrap();
@@ -233,6 +265,13 @@ mod tests {
 	}
 
 	#[test]
+	fn direction() {
+		assert("METRICSSET 0\n", Entry::Direction(Direction::Default));
+		assert("METRICSSET 1\n", Entry::Direction(Direction::Alternate));
+		assert("METRICSSET 2\n", Entry::Direction(Direction::Both));
+	}
+
+	#[test]
 	fn scalable_width() {
 		assert("SWIDTH 392 0\n", Entry::ScalableWidth(392, 0));
 	}
@@ -240,6 +279,21 @@ mod tests {
 	#[test]
 	fn device_width() {
 		assert("DWIDTH 6 0\n", Entry::DeviceWidth(6, 0), );
+	}
+
+	#[test]
+	fn alternate_scalable_width() {
+		assert("SWIDTH1 392 0\n", Entry::AlternateScalableWidth(392, 0));
+	}
+
+	#[test]
+	fn alternate_device_width() {
+		assert("DWIDTH1 6 0\n", Entry::AlternateDeviceWidth(6, 0), );
+	}
+
+	#[test]
+	fn vector() {
+		assert("VVECTOR 6 0\n", Entry::Vector(6, 0), );
 	}
 
 	#[test]
