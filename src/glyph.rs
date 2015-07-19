@@ -1,82 +1,183 @@
 use std::ops::{Deref, DerefMut};
-use {BoundingBox, Bitmap};
+use {BoundingBox, Bitmap, Direction};
 
 /// A font glyph.
 #[derive(Debug)]
 pub struct Glyph {
-	name:      String,
-	codepoint: char,
+	name:      Option<String>,
+	codepoint: Option<char>,
 
-	scalable_width: (u32, u32),
-	device_width:   (u32, u32),
+	direction: Direction,
+
+	scalable_width: Option<(u32, u32)>,
+	device_width:   Option<(u32, u32)>,
+
+	alternate_scalable_width: Option<(u32, u32)>,
+	alternate_device_width:   Option<(u32, u32)>,
+
+	vector: Option<(u32, u32)>,
 
 	bounds: Option<BoundingBox>,
 	map:    Bitmap,
 }
 
-impl Glyph {
-	/// Creates an empty glyph.
-	pub fn empty() -> Self {
+impl Default for Glyph {
+	fn default() -> Self {
 		Glyph {
-			name:      "".to_owned(),
-			codepoint: '\u{0}',
+			name:      None,
+			codepoint: None,
 
-			scalable_width: (0, 0),
-			device_width:   (0, 0),
+			direction: Default::default(),
+
+			scalable_width: None,
+			device_width:   None,
+
+			alternate_scalable_width: None,
+			alternate_device_width:   None,
+
+			vector: None,
 
 			bounds: Default::default(),
 			map:    Default::default(),
 		}
 	}
+}
+
+impl Glyph {
+	/// Creates a new glyph with the given name and codepoint.
+	pub fn new<T: Into<String>>(name: T, codepoint: char) -> Self {
+		Glyph {
+			name:      Some(name.into()),
+			codepoint: Some(codepoint),
+
+			.. Default::default()
+		}
+	}
+
+	/// Validates the definition.
+	pub fn validate(&self) -> bool {
+		if self.name.is_none() {
+			return false;
+		}
+
+		if self.codepoint.is_none() {
+			return false;
+		}
+
+		if self.bounds.is_none() {
+			return false;
+		}
+
+		if self.direction == Direction::Default {
+			if self.alternate_scalable_width.is_some() {
+				return false;
+			}
+
+			if self.alternate_device_width.is_some() {
+				return false;
+			}
+		}
+		else {
+			if self.alternate_scalable_width.is_none() {
+				return false;
+			}
+
+			if self.alternate_device_width.is_none() {
+				return false;
+			}
+		}
+
+		true
+	}
 
 	/// Gets the name.
 	pub fn name(&self) -> &str {
-		&self.name
+		&self.name.as_ref().unwrap().as_ref()
 	}
 
 	/// Sets the name.
 	pub fn set_name<T: Into<String>>(&mut self, name: T) {
-		self.name = name.into();
+		self.name = Some(name.into());
 	}
 
 	/// Gets the codepoint.
 	pub fn codepoint(&self) -> char {
-		self.codepoint
+		self.codepoint.unwrap()
 	}
 
 	/// Sets the codepoint.
 	pub fn set_codepoint(&mut self, codepoint: char) {
-		self.codepoint = codepoint;
+		self.codepoint = Some(codepoint);
+	}
+
+	/// Gets the direction.
+	pub fn direction(&self) -> Direction {
+		self.direction
+	}
+
+	/// Sets the direction.
+	pub fn set_direction(&mut self, direction: Direction) {
+		self.direction = direction;
 	}
 
 	/// Gets the scalable width.
-	pub fn scalable_width(&self) -> (u32, u32) {
-		self.scalable_width
+	pub fn scalable_width(&self) -> Option<&(u32, u32)> {
+		self.scalable_width.as_ref()
 	}
 
 	/// Sets the scalable width.
-	pub fn set_scalable_width(&mut self, x: u32, y: u32) {
-		self.scalable_width = (x, y);
+	pub fn set_scalable_width(&mut self, value: Option<(u32, u32)>) {
+		self.scalable_width = value;
 	}
 
 	/// Gets the device width.
-	pub fn device_width(&self) -> (u32, u32) {
-		self.device_width
+	pub fn device_width(&self) -> Option<&(u32, u32)> {
+		self.device_width.as_ref()
 	}
 
 	/// Sets the device width.
-	pub fn set_device_width(&mut self, x: u32, y: u32) {
-		self.device_width = (x, y);
+	pub fn set_device_width(&mut self, value: Option<(u32, u32)>) {
+		self.device_width = value;
+	}
+
+	/// Gets the alternate scalable width.
+	pub fn alternate_scalable_width(&self) -> Option<&(u32, u32)> {
+		self.alternate_scalable_width.as_ref()
+	}
+
+	/// Sets the alternate scalable width.
+	pub fn set_alternate_scalable_width(&mut self, value: Option<(u32, u32)>) {
+		self.alternate_scalable_width = value;
+	}
+
+	/// Gets the alternate device width.
+	pub fn alternate_device_width(&self) -> Option<&(u32, u32)> {
+		self.alternate_device_width.as_ref()
+	}
+
+	/// Sets the alternate device width.
+	pub fn set_alternate_device_width(&mut self, value: Option<(u32, u32)>) {
+		self.alternate_device_width = value;
+	}
+
+	/// Gets the offset vector.
+	pub fn vector(&self) -> Option<&(u32, u32)> {
+		self.vector.as_ref()
+	}
+
+	/// Sets the offset vector.
+	pub fn set_vector(&mut self, value: Option<(u32, u32)>) {
+		self.vector = value;
 	}
 
 	/// Gets the bounds.
-	pub fn bounds(&self) -> Option<&BoundingBox> {
-		self.bounds.as_ref()
+	pub fn bounds(&self) -> &BoundingBox {
+		self.bounds.as_ref().unwrap()
 	}
 
 	/// Sets the bounds.
-	pub fn set_bounds(&mut self, bounds: Option<BoundingBox>) {
-		self.bounds = bounds;
+	pub fn set_bounds(&mut self, bounds: BoundingBox) {
+		self.bounds = Some(bounds);
 	}
 
 	/// Gets the bitmap.
