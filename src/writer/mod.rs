@@ -5,7 +5,7 @@ use std::io::Write;
 use std::fs::File;
 use std::path::Path;
 
-use {Error, Font, Entry};
+use {Error, Font, Entry, Direction};
 
 /// Create a `Writer` from a `Write`.
 pub fn new<T: Write>(stream: T) -> Writer<T> {
@@ -29,7 +29,31 @@ pub fn write<T: Write>(stream: T, font: &Font) -> Result<(), Error> {
 		try!(writer.entry(&Entry::ContentVersion(version.to_owned())));
 	}
 
-	try!(writer.entry(&Entry::FontBoundingBox(*font.bounds())));
+	try!(writer.entry(&Entry::FontBoundingBox(font.bounds().clone())));
+
+	if font.direction() != Direction::Default {
+		try!(writer.entry(&Entry::Direction(font.direction().clone())));
+	}
+
+	if let Some(&(x, y)) = font.scalable_width() {
+		try!(writer.entry(&Entry::ScalableWidth(x, y)));
+	}
+
+	if let Some(&(x, y)) = font.device_width() {
+		try!(writer.entry(&Entry::DeviceWidth(x, y)));
+	}
+
+	if let Some(&(x, y)) = font.alternate_scalable_width() {
+		try!(writer.entry(&Entry::AlternateScalableWidth(x, y)));
+	}
+
+	if let Some(&(x, y)) = font.alternate_device_width() {
+		try!(writer.entry(&Entry::AlternateDeviceWidth(x, y)));
+	}
+
+	if let Some(&(x, y)) = font.vector() {
+		try!(writer.entry(&Entry::Vector(x, y)));
+	}
 
 	if font.properties().len() > 0 {
 		try!(writer.entry(&Entry::StartProperties(font.properties().len())));
@@ -47,12 +71,32 @@ pub fn write<T: Write>(stream: T, font: &Font) -> Result<(), Error> {
 		try!(writer.entry(&Entry::StartChar(glyph.name().to_owned())));
 
 		try!(writer.entry(&Entry::Encoding(*codepoint)));
-		try!(writer.entry(&Entry::ScalableWidth(glyph.scalable_width().0, glyph.scalable_width().1)));
-		try!(writer.entry(&Entry::DeviceWidth(glyph.device_width().0, glyph.device_width().1)));
 
-		if let Some(bbx) = glyph.bounds() {
-			try!(writer.entry(&Entry::BoundingBox(bbx.clone())));
+		if glyph.direction() != Direction::Default {
+			try!(writer.entry(&Entry::Direction(glyph.direction().clone())));
 		}
+
+		if let Some(&(x, y)) = glyph.scalable_width() {
+			try!(writer.entry(&Entry::ScalableWidth(x, y)));
+		}
+
+		if let Some(&(x, y)) = glyph.device_width() {
+			try!(writer.entry(&Entry::DeviceWidth(x, y)));
+		}
+
+		if let Some(&(x, y)) = glyph.alternate_scalable_width() {
+			try!(writer.entry(&Entry::AlternateScalableWidth(x, y)));
+		}
+
+		if let Some(&(x, y)) = glyph.alternate_device_width() {
+			try!(writer.entry(&Entry::AlternateDeviceWidth(x, y)));
+		}
+
+		if let Some(&(x, y)) = glyph.vector() {
+			try!(writer.entry(&Entry::Vector(x, y)));
+		}
+
+		try!(writer.entry(&Entry::BoundingBox(glyph.bounds().clone())));
 
 		try!(writer.entry(&Entry::Bitmap(glyph.map().clone())));
 
@@ -68,7 +112,7 @@ pub fn write<T: Write>(stream: T, font: &Font) -> Result<(), Error> {
 mod tests {
 	use std::str::from_utf8;
 
-	use {Entry, BoundingBox, Bitmap, Property, writer};
+	use {Entry, BoundingBox, Bitmap, Property, Direction, writer};
 
 	pub fn assert(entry: Entry, string: &str) {
 		let mut output = Vec::new();
@@ -153,6 +197,13 @@ mod tests {
 	}
 
 	#[test]
+	fn direction() {
+		assert(Entry::Direction(Direction::Default), "METRICSSET 0\n");
+		assert(Entry::Direction(Direction::Alternate), "METRICSSET 1\n");
+		assert(Entry::Direction(Direction::Both), "METRICSSET 2\n");
+	}
+
+	#[test]
 	fn scalable_width() {
 		assert(Entry::ScalableWidth(392, 0), "SWIDTH 392 0\n");
 	}
@@ -160,6 +211,21 @@ mod tests {
 	#[test]
 	fn device_width() {
 		assert(Entry::DeviceWidth(6, 0), "DWIDTH 6 0\n");
+	}
+
+	#[test]
+	fn alternate_scalable_width() {
+		assert(Entry::AlternateScalableWidth(392, 0), "SWIDTH1 392 0\n");
+	}
+
+	#[test]
+	fn alternate_device_width() {
+		assert(Entry::AlternateDeviceWidth(6, 0), "DWIDTH1 6 0\n");
+	}
+
+	#[test]
+	fn vector() {
+		assert(Entry::Vector(6, 0), "VVECTOR 6 0\n");
 	}
 
 	#[test]
