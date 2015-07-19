@@ -1,6 +1,6 @@
 [package]
 name    = "bdf"
-version = "0.5.1"
+version = "0.5.2"
 
 authors = ["meh. <meh@schizofreni.co>"]
 license = "WTFPL"
