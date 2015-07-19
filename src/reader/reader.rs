@@ -7,11 +7,8 @@ use {Error, Entry, BoundingBox, Bitmap, Property};
 pub struct Reader<T: Read> {
 	stream: Lines<BufReader<T>>,
 
-	default_width:  usize,
-	default_height: usize,
-
-	width:  usize,
-	height: usize,
+	default: Option<BoundingBox>,
+	current: Option<BoundingBox>,
 }
 
 impl<T: Read> From<T> for Reader<T> {
@@ -19,11 +16,8 @@ impl<T: Read> From<T> for Reader<T> {
 		Reader {
 			stream: BufReader::new(stream).lines(),
 
-			default_width:  0,
-			default_height: 0,
-
-			width:  0,
-			height: 0,
+			default: None,
+			current: None,
 		}
 	}
 }
@@ -91,16 +85,17 @@ impl<T: Read> Reader<T> {
 					return Err(Error::MissingValue(id.to_owned()));
 				}
 
-				self.default_width  = try!(split[0].parse());
-				self.default_height = try!(split[1].parse());
-
-				return Ok(Entry::FontBoundingBox(BoundingBox {
+				let bbx = BoundingBox {
 					width:  try!(split[0].parse()),
 					height: try!(split[1].parse()),
 
 					x: try!(split[2].parse()),
 					y: try!(split[3].parse())
-				}));
+				};
+
+				self.default = Some(bbx);
+
+				return Ok(Entry::FontBoundingBox(bbx));
 			}
 
 			return Err(Error::MissingValue(id.to_owned()));
@@ -133,7 +128,7 @@ impl<T: Read> Reader<T> {
 		if id == "ENCODING" {
 			if let Some(rest) = rest {
 				return Ok(Entry::Encoding(
-					try!(char::from_u32(try!(rest.parse())).ok_or(Error::Unknown))));
+					try!(char::from_u32(try!(rest.parse())).ok_or(Error::InvalidCodepoint))));
 			}
 
 			return Err(Error::MissingValue(id.to_owned()));
@@ -179,39 +174,45 @@ impl<T: Read> Reader<T> {
 					return Err(Error::MissingValue(id.to_owned()));
 				}
 
-				self.width  = try!(split[0].parse());
-				self.height = try!(split[1].parse());
-
-				return Ok(Entry::BoundingBox(BoundingBox {
+				let bbx = BoundingBox {
 					width: try!(split[0].parse()),
 					height: try!(split[1].parse()),
 
 					x: try!(split[2].parse()),
 					y: try!(split[3].parse())
-				}));
+				};
+
+				self.current = Some(bbx);
+
+				return Ok(Entry::BoundingBox(bbx));
 			}
 
 			return Err(Error::MissingValue(id.to_owned()));
 		}
 
 		if id == "BITMAP" {
-			if (self.default_width == 0 && self.width == 0) || (self.default_height == 0 && self.height == 0) {
-				return Err(Error::MissingValue(id.to_owned()));
+			let (width, height) = if let Some(BoundingBox { width, height, .. }) = self.current {
+				(width, height)
 			}
+			else if let Some(BoundingBox { width, height, .. }) = self.default {
+				(width, height)
+			}
+			else {
+				return Err(Error::MissingBoundingBox);
+			};
 
-			let width  = if self.default_width == 0 { self.width } else { self.default_width };
-			let height = if self.default_height == 0 { self.height } else { self.default_height };
-
-			let     rows = self.stream.by_ref().take(height).collect::<Vec<_>>();
-			let mut map  = Bitmap::new(width as u32, height as u32);
+			let     rows = self.stream.by_ref().take(height as usize).collect::<Vec<_>>();
+			let mut map  = Bitmap::new(width, height);
 
 			for (y, row) in rows.into_iter().enumerate() {
 				let row = try!(u64::from_str_radix(try!(row).as_ref(), 16)) >> (8 - (width % 8));
 
 				for x in 0 .. width {
-					map.set((width - x - 1) as u32, y as u32, ((row >> x) & 1) == 1);
+					map.set(width - x - 1, y as u32, ((row >> x) & 1) == 1);
 				}
 			}
+
+			self.current = None;
 
 			return Ok(Entry::Bitmap(map));
 		}
