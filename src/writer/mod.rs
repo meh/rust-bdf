@@ -19,6 +19,14 @@ pub fn save<T: AsRef<Path>>(path: T, font: &Font) -> Result<(), Error> {
 
 /// Write the font to the writer.
 pub fn write<T: Write>(stream: T, font: &Font) -> Result<(), Error> {
+	if !font.validate() {
+		return Err(Error::MalformedFont);
+	}
+
+	if font.glyphs().iter().any(|(_, g)| !g.validate()) {
+		return Err(Error::MalformedChar);
+	}
+
 	let mut writer = new(stream);
 
 	try!(writer.entry(&Entry::StartFont(font.format().to_owned())));
