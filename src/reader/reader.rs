@@ -282,7 +282,7 @@ impl<T: Read> Reader<T> {
 				let mut map  = Bitmap::new(width, height);
 
 				for (y, row) in rows.into_iter().enumerate() {
-					let row = try!(u64::from_str_radix(try!(row).as_ref(), 16)) >> (8 - (width % 8));
+					let row = try!(u64::from_str_radix(try!(row).as_ref(), 16)) >> ((8 - (width % 8)) % 8);
 
 					for x in 0 .. width {
 						map.set(width - x - 1, y as u32, ((row >> x) & 1) == 1);
