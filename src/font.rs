@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use {Glyph, Property, BoundingBox};
+use {Glyph, Property, BoundingBox, Direction};
 
 /// Size of a font.
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -15,27 +15,26 @@ pub struct Size {
 	pub y: u16,
 }
 
-impl Default for Size {
-	fn default() -> Self {
-		Size {
-			pt: 0,
-
-			x: 0,
-			y: 0,
-		}
-	}
-}
-
 /// A BDF font.
 #[derive(Debug)]
 pub struct Font {
 	format: String,
 
-	name:    String,
+	name:    Option<String>,
 	version: Option<String>,
 
-	size:   Size,
-	bounds: BoundingBox,
+	size:   Option<Size>,
+	bounds: Option<BoundingBox>,
+
+	direction: Direction,
+
+	scalable_width: Option<(u32, u32)>,
+	device_width:   Option<(u32, u32)>,
+
+	alternate_scalable_width: Option<(u32, u32)>,
+	alternate_device_width:   Option<(u32, u32)>,
+
+	vector: Option<(u32, u32)>,
 
 	properties: HashMap<String, Property>,
 	glyphs:     HashMap<char, Glyph>,
@@ -46,11 +45,21 @@ impl Default for Font {
 		Font {
 			format: "2.2".to_owned(),
 
-			name:    "--------------".to_owned(),
+			name:    None,
 			version: None,
 
-			size:   Default::default(),
-			bounds: Default::default(),
+			size:   None,
+			bounds: None,
+
+			direction: Default::default(),
+
+			scalable_width: None,
+			device_width:   None,
+
+			alternate_scalable_width: None,
+			alternate_device_width:   None,
+
+			vector: None,
 
 			properties: HashMap::new(),
 			glyphs:     HashMap::new(),
@@ -62,11 +71,28 @@ impl Font {
 	/// Create a new font with the given name and content-version.
 	pub fn new<T: Into<String>>(name: T, version: Option<T>) -> Self {
 		Font {
-			name:    name.into(),
+			name:    Some(name.into()),
 			version: version.map(|v| v.into()),
 
 			.. Default::default()
 		}
+	}
+
+	/// Validates the definition.
+	pub fn validate(&self) -> bool {
+		if self.name.is_none() {
+			return false;
+		}
+
+		if self.size.is_none() {
+			return false;
+		}
+
+		if self.bounds.is_none() {
+			return false;
+		}
+
+		true
 	}
 
 	/// Gets BDF format version.
@@ -81,12 +107,12 @@ impl Font {
 
 	/// Gets the name.
 	pub fn name(&self) -> &str {
-		&self.name
+		self.name.as_ref().unwrap().as_ref()
 	}
 
 	/// Sets the name.
 	pub fn set_name<T: Into<String>>(&mut self, name: T) {
-		self.name = name.into();
+		self.name = Some(name.into());
 	}
 
 	/// Gets the content-version.
@@ -101,22 +127,82 @@ impl Font {
 
 	/// Gets the size.
 	pub fn size(&self) -> &Size {
-		&self.size
+		self.size.as_ref().unwrap()
 	}
 
 	/// Sets the size.
 	pub fn set_size(&mut self, size: Size) {
-		self.size = size;
+		self.size = Some(size);
 	}
 
 	/// Gets the default bounding box.
 	pub fn bounds(&self) -> &BoundingBox {
-		&self.bounds
+		self.bounds.as_ref().unwrap()
 	}
 
 	/// Sets the default bounding box.
 	pub fn set_bounds(&mut self, bounds: BoundingBox) {
-		self.bounds = bounds;
+		self.bounds = Some(bounds);
+	}
+
+	/// Gets the default direction.
+	pub fn direction(&self) -> Direction {
+		self.direction
+	}
+
+	/// Sets the default direction.
+	pub fn set_direction(&mut self, direction: Direction) {
+		self.direction = direction;
+	}
+
+	/// Gets the default scalable width.
+	pub fn scalable_width(&self) -> Option<&(u32, u32)> {
+		self.scalable_width.as_ref()
+	}
+
+	/// Sets the default scalable width.
+	pub fn set_scalable_width(&mut self, value: Option<(u32, u32)>) {
+		self.scalable_width = value;
+	}
+
+	/// Gets the default device width.
+	pub fn device_width(&self) -> Option<&(u32, u32)> {
+		self.device_width.as_ref()
+	}
+
+	/// Sets the default device width.
+	pub fn set_device_width(&mut self, value: Option<(u32, u32)>) {
+		self.device_width = value;
+	}
+
+	/// Gets the default alternate scalable width.
+	pub fn alternate_scalable_width(&self) -> Option<&(u32, u32)> {
+		self.alternate_scalable_width.as_ref()
+	}
+
+	/// Sets the default alternate scalable width.
+	pub fn set_alternate_scalable_width(&mut self, value: Option<(u32, u32)>) {
+		self.alternate_scalable_width = value;
+	}
+
+	/// Gets the default alternate device width.
+	pub fn alternate_device_width(&self) -> Option<&(u32, u32)> {
+		self.alternate_device_width.as_ref()
+	}
+
+	/// Sets the default alternate device width.
+	pub fn set_alternate_device_width(&mut self, value: Option<(u32, u32)>) {
+		self.alternate_device_width = value;
+	}
+
+	/// Gets the default offset vector.
+	pub fn vector(&self) -> Option<&(u32, u32)> {
+		self.vector.as_ref()
+	}
+
+	/// Sets the default offset vector.
+	pub fn set_vector(&mut self, value: Option<(u32, u32)>) {
+		self.vector = value;
 	}
 
 	/// Gets the properties.
