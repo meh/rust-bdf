@@ -35,14 +35,6 @@ impl<T: Read> Reader<T> {
 				((&line[..]).trim(), None)
 		};
 
-		if id == "STARTFONT" {
-			if let Some(rest) = rest {
-				return Ok(Entry::StartFont(rest.to_owned()))
-			}
-
-			return Err(Error::MissingVersion);
-		}
-
 		if id == "COMMENT" {
 			if let Some(rest) = rest {
 				return Ok(Entry::Comment((&rest[1..rest.len()-1]).to_owned()));
@@ -50,6 +42,14 @@ impl<T: Read> Reader<T> {
 			else {
 				return Ok(Entry::Comment("".to_owned()));
 			}
+		}
+
+		if id == "STARTFONT" {
+			if let Some(rest) = rest {
+				return Ok(Entry::StartFont(rest.to_owned()))
+			}
+
+			return Err(Error::MissingVersion);
 		}
 
 		if id == "FONT" {

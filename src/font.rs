@@ -37,7 +37,6 @@ pub struct Font {
 	size:   Size,
 	bounds: BoundingBox,
 
-	comments:   Vec<String>,
 	properties: HashMap<String, Property>,
 	glyphs:     HashMap<char, Glyph>,
 }
@@ -53,7 +52,6 @@ impl Default for Font {
 			size:   Default::default(),
 			bounds: Default::default(),
 
-			comments:   Vec::new(),
 			properties: HashMap::new(),
 			glyphs:     HashMap::new(),
 		}
@@ -119,16 +117,6 @@ impl Font {
 	/// Sets the default bounding box.
 	pub fn set_bounds(&mut self, bounds: BoundingBox) {
 		self.bounds = bounds;
-	}
-
-	/// Gets the comments.
-	pub fn comments(&self) -> &Vec<String> {
-		&self.comments
-	}
-
-	/// Gets a mutable reference to the comments.
-	pub fn comments_mut(&mut self) -> &mut Vec<String> {
-		&mut self.comments
 	}
 
 	/// Gets the properties.

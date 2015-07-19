@@ -117,7 +117,7 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 
 			match entry {
 				Entry::Comment(comment) =>
-					font.comments_mut().push((&comment[1..comment.len()]).to_owned()),
+					(),
 
 				Entry::ContentVersion(version) =>
 					font.set_version(Some(version)),

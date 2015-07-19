@@ -22,11 +22,6 @@ pub fn write<T: Write>(stream: T, font: &Font) -> Result<(), Error> {
 	let mut writer = new(stream);
 
 	try!(writer.entry(&Entry::StartFont(font.format().to_owned())));
-
-	for comment in font.comments() {
-		try!(writer.entry(&Entry::Comment(comment.to_owned())));
-	}
-
 	try!(writer.entry(&Entry::Font(font.name().to_owned())));
 	try!(writer.entry(&Entry::Size(font.size().pt, font.size().x, font.size().y)));
 
