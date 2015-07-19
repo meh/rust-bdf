@@ -132,7 +132,7 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 					(),
 
 				Entry::FontBoundingBox(bbx) =>
-					font.set_bounds(Some(bbx)),
+					font.set_bounds(bbx),
 
 				_ =>
 					return Err(Error::MalformedFont)

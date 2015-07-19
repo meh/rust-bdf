@@ -34,9 +34,7 @@ pub fn write<T: Write>(stream: T, font: &Font) -> Result<(), Error> {
 		try!(writer.entry(&Entry::ContentVersion(version.to_owned())));
 	}
 
-	if let Some(bbx) = font.bounds() {
-		try!(writer.entry(&Entry::FontBoundingBox(bbx.clone())));
-	}
+	try!(writer.entry(&Entry::FontBoundingBox(*font.bounds())));
 
 	if font.properties().len() > 0 {
 		try!(writer.entry(&Entry::StartProperties(font.properties().len())));

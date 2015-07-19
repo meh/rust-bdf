@@ -35,7 +35,7 @@ pub struct Font {
 	version: Option<String>,
 
 	size:   Size,
-	bounds: Option<BoundingBox>,
+	bounds: BoundingBox,
 
 	comments:   Vec<String>,
 	properties: HashMap<String, Property>,
@@ -112,12 +112,12 @@ impl Font {
 	}
 
 	/// Gets the default bounding box.
-	pub fn bounds(&self) -> Option<&BoundingBox> {
-		self.bounds.as_ref()
+	pub fn bounds(&self) -> &BoundingBox {
+		&self.bounds
 	}
 
 	/// Sets the default bounding box.
-	pub fn set_bounds(&mut self, bounds: Option<BoundingBox>) {
+	pub fn set_bounds(&mut self, bounds: BoundingBox) {
 		self.bounds = bounds;
 	}
 
