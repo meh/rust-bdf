@@ -2,6 +2,12 @@ use std::io::{Write, BufWriter};
 
 use {Error, Entry, Property, Direction};
 
+macro_rules! write {
+	($dst:expr, $($arg:tt)*) => (
+		try!($dst.write_all(format!($($arg)*).as_bytes()))
+	)
+}
+
 /// The font writer.
 pub struct Writer<T: Write> {
 	stream: BufWriter<T>,
@@ -20,84 +26,82 @@ impl<T: Write> Writer<T> {
 	pub fn entry(&mut self, entry: &Entry) -> Result<(), Error> {
 		match entry {
 			&Entry::StartFont(ref string) =>
-				try!(self.stream.write_all(format!("STARTFONT {}\n", string).as_bytes())),
+				write!(self.stream, "STARTFONT {}\n", string),
 
 			&Entry::Comment(ref string) =>
-				try!(self.stream.write_all(format!("COMMENT \"{}\"\n", string.replace("\"", "\"\"")).as_bytes())),
+				write!(self.stream, "COMMENT \"{}\"\n", string.replace("\"", "\"\"")),
 
 			&Entry::ContentVersion(ref string) =>
-				try!(self.stream.write_all(format!("CONTENTVERSION {}\n", string).as_bytes())),
+				write!(self.stream, "CONTENTVERSION {}\n", string),
 
 			&Entry::Font(ref string) =>
-				try!(self.stream.write_all(format!("FONT {}\n", string).as_bytes())),
+				write!(self.stream, "FONT {}\n", string),
 
 			&Entry::Size(pt, x, y) =>
-				try!(self.stream.write_all(format!("SIZE {} {} {}\n", pt, x, y).as_bytes())),
+				write!(self.stream, "SIZE {} {} {}\n", pt, x, y),
 
 			&Entry::Chars(chars) =>
-				try!(self.stream.write_all(format!("CHARS {}\n", chars).as_bytes())),
+				write!(self.stream, "CHARS {}\n", chars),
 
 			&Entry::FontBoundingBox(ref bbx) =>
-				try!(self.stream.write_all(format!("FONTBOUNDINGBOX {} {} {} {}\n",
-					bbx.width, bbx.height, bbx.x, bbx.y).as_bytes())),
+				write!(self.stream, "FONTBOUNDINGBOX {} {} {} {}\n", bbx.width, bbx.height, bbx.x, bbx.y),
 
 			&Entry::EndFont =>
-				try!(self.stream.write_all(b"ENDFONT\n")),
+				write!(self.stream, "ENDFONT\n"),
 
 			&Entry::StartProperties(len) =>
-				try!(self.stream.write_all(format!("STARTPROPERTIES {}\n", len).as_bytes())),
+				write!(self.stream, "STARTPROPERTIES {}\n", len),
 
 			&Entry::Property(ref name, ref value) =>
 				match value {
 					&Property::String(ref string) =>
-						try!(self.stream.write_all(format!("{} \"{}\"\n", name, string.replace("\"", "\"\"")).as_bytes())),
+						write!(self.stream, "{} \"{}\"\n", name, string.replace("\"", "\"\"")),
 
 					&Property::Integer(value) =>
-						try!(self.stream.write_all(format!("{} {}\n", name, value).as_bytes())),
+						write!(self.stream, "{} {}\n", name, value),
 				},
 
 			&Entry::EndProperties =>
-				try!(self.stream.write_all("ENDPROPERTIES\n".as_bytes())),
+				write!(self.stream, "ENDPROPERTIES\n"),
 
 			&Entry::StartChar(ref name) =>
-				try!(self.stream.write_all(format!("STARTCHAR {}\n", name).as_bytes())),
+				write!(self.stream, "STARTCHAR {}\n", name),
 
 			&Entry::Encoding(value) =>
-				try!(self.stream.write_all(format!("ENCODING {}\n", value as u32).as_bytes())),
+				write!(self.stream, "ENCODING {}\n", value as u32),
 
 			&Entry::Direction(direction) =>
 				match direction {
 					Direction::Default =>
-						try!(self.stream.write_all(b"METRICSSET 0\n")),
+						write!(self.stream, "METRICSSET 0\n"),
 
 					Direction::Alternate =>
-						try!(self.stream.write_all(b"METRICSSET 1\n")),
+						write!(self.stream, "METRICSSET 1\n"),
 
 					Direction::Both =>
-						try!(self.stream.write_all(b"METRICSSET 2\n")),
+						write!(self.stream, "METRICSSET 2\n"),
 				},
 
 			&Entry::ScalableWidth(x, y) =>
-				try!(self.stream.write_all(format!("SWIDTH {} {}\n", x, y).as_bytes())),
+				write!(self.stream, "SWIDTH {} {}\n", x, y),
 
 			&Entry::DeviceWidth(x, y) =>
-				try!(self.stream.write_all(format!("DWIDTH {} {}\n", x, y).as_bytes())),
+				write!(self.stream, "DWIDTH {} {}\n", x, y),
 
 			&Entry::AlternateScalableWidth(x, y) =>
-				try!(self.stream.write_all(format!("SWIDTH1 {} {}\n", x, y).as_bytes())),
+				write!(self.stream, "SWIDTH1 {} {}\n", x, y),
 
 			&Entry::AlternateDeviceWidth(x, y) =>
-				try!(self.stream.write_all(format!("DWIDTH1 {} {}\n", x, y).as_bytes())),
+				write!(self.stream, "DWIDTH1 {} {}\n", x, y),
 
 			&Entry::Vector(x, y) =>
-				try!(self.stream.write_all(format!("VVECTOR {} {}\n", x, y).as_bytes())),
+				write!(self.stream, "VVECTOR {} {}\n", x, y),
 
 			&Entry::BoundingBox(ref bbx) =>
-				try!(self.stream.write_all(format!("BBX {} {} {} {}\n",
-					bbx.width, bbx.height, bbx.x, bbx.y).as_bytes())),
+				write!(self.stream, "BBX {} {} {} {}\n", bbx.width, bbx.height, bbx.x, bbx.y),
 
 			&Entry::Bitmap(ref map) => {
-				try!(self.stream.write_all(b"BITMAP\n"));
+				write!(self.stream, "BITMAP\n");
 
 				for y in 0 .. map.height() {
 					let mut value: u64 = 0;
@@ -112,15 +116,15 @@ impl<T: Write> Writer<T> {
 					let hex = format!("{:X}\n", value);
 
 					if (hex.len() - 1) % 2 != 0 {
-						try!(self.stream.write_all(b"0"));
+						write!(self.stream, "0");
 					}
 
-					try!(self.stream.write_all(hex.as_bytes()));
+					write!(self.stream, "{}", hex);
 				}
 			},
 
 			&Entry::EndChar =>
-				try!(self.stream.write_all(b"ENDCHAR\n")),
+				write!(self.stream, "ENDCHAR\n"),
 
 			&Entry::Unknown(..) =>
 				unreachable!(),
