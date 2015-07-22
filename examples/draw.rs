@@ -17,10 +17,8 @@ fn main() {
 	}
 
 	for y in 0 .. glyph.height() {
-		if glyph.bounds().x > 0 {
-			for _ in 0 .. glyph.bounds().x {
-				print!("░░");
-			}
+		for _ in 0 .. glyph.bounds().x {
+			print!("░░");
 		}
 
 		for x in 0 .. glyph.width() {
