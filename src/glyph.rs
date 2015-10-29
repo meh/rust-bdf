@@ -242,4 +242,14 @@ impl<'a> Iterator for PixelIter<'a> {
 
 		Some(((x, y), self.map.get(x, y)))
 	}
+
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		let width   = self.map.width();
+		let height  = self.map.height();
+		let current = (self.y * height) + self.x;
+
+		(current as usize, Some(((width * height) - current) as usize))
+	}
 }
+
+impl<'a> ExactSizeIterator for PixelIter<'a> { }
