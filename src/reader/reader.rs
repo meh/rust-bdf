@@ -335,11 +335,8 @@ impl<T: Read> Iterator for Reader<T> {
 			Ok(entry) =>
 				Some(entry),
 
-			Err(Error::End) =>
+			Err(..) =>
 				None,
-
-			Err(error) =>
-				panic!("{}", error)
 		}
 	}
 }
