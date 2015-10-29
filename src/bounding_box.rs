@@ -15,6 +15,7 @@ pub struct BoundingBox {
 }
 
 impl Default for BoundingBox {
+	#[inline]
 	fn default() -> Self {
 		BoundingBox {
 			width:  0,

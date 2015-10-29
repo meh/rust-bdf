@@ -12,6 +12,7 @@ pub enum Direction {
 }
 
 impl Default for Direction {
+	#[inline]
 	fn default() -> Self {
 		Direction::Default
 	}
