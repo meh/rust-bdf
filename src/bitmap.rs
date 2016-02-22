@@ -48,7 +48,7 @@ impl Bitmap {
 			panic!("out of bounds");
 		}
 
-		self.bits.contains(&((y * self.width + x) as usize))
+		self.bits.contains(((y * self.width + x) as usize))
 	}
 
 	/// Sets a bit of the map.
@@ -62,7 +62,7 @@ impl Bitmap {
 			self.bits.insert((y * self.width + x) as usize);
 		}
 		else {
-			self.bits.remove(&((y * self.width + x) as usize));
+			self.bits.remove(((y * self.width + x) as usize));
 		}
 	}
 }
