@@ -133,7 +133,7 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 			}
 
 			match entry {
-				Entry::Comment(..) =>
+				Entry::Comment(..) | Entry::Chars(..) =>
 					(),
 
 				Entry::ContentVersion(version) =>
@@ -144,9 +144,6 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 
 				Entry::Size(pt, x, y) =>
 					font.set_size(font::Size { pt: pt, x: x, y: y }),
-
-				Entry::Chars(..) =>
-					(),
 
 				Entry::FontBoundingBox(bbx) =>
 					font.set_bounds(bbx),
@@ -173,12 +170,16 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 			continue;
 		}
 
-		if let Entry::StartFont(format) = entry {
-			font.set_format(format);
-			in_font = true;
-		}
-		else {
-			return Err(Error::MalformedFont);
+		match entry {
+			Entry::Comment(..) => (),
+
+			Entry::StartFont(format) => {
+				font.set_format(format);
+				in_font = true;
+			}
+
+			_ =>
+				return Err(Error::MalformedFont)
 		}
 	}
 }
