@@ -104,22 +104,18 @@ impl<T: Write> Writer<T> {
 				write!(self.stream, "BITMAP\n");
 
 				for y in 0 .. map.height() {
-					let mut value: u64 = 0;
-
-					for x in 0 .. map.width() {
-						value <<= 1;
-						value  |= if map.get(x, y) { 1 } else { 0 };
+					for x_char in 0 .. (map.width() + 3) / 4 {
+						let mut bits = 0u8;
+						for x_bit in 0..4 {
+							let x = x_char * 4 + x_bit;
+							if x >= map.width() {
+								break;
+							}
+							bits |= (map.get(x, y) as u8) << (3 - x_bit);
+						}
+						write!(self.stream, "{:X}", bits);
 					}
-
-					value <<= 8 - (map.width() % 8);
-
-					let hex = format!("{:X}\n", value);
-
-					if (hex.len() - 1) % 2 != 0 {
-						write!(self.stream, "0");
-					}
-
-					write!(self.stream, "{}", hex);
+					write!(self.stream, "\n");
 				}
 			},
 
