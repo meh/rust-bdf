@@ -1,4 +1,4 @@
-use {BoundingBox, Bitmap, Property, Direction};
+use crate::{BoundingBox, Bitmap, Property, Direction};
 
 /// The possible entries in BDF.
 #[derive(PartialEq, Eq, Clone, Debug)]

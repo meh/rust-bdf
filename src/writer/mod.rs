@@ -5,7 +5,7 @@ use std::io::Write;
 use std::fs::File;
 use std::path::Path;
 
-use {Error, Font, Entry, Direction};
+use crate::{Error, Font, Entry, Direction};
 
 /// Create a `Writer` from a `Write`.
 pub fn new<T: Write>(stream: T) -> Writer<T> {
@@ -14,7 +14,7 @@ pub fn new<T: Write>(stream: T) -> Writer<T> {
 
 /// Save the font into a BDF file.
 pub fn save<T: AsRef<Path>>(path: T, font: &Font) -> Result<(), Error> {
-	write(try!(File::create(path)), font)
+	write(File::create(path)?, font)
 }
 
 /// Write the font to the writer.
@@ -29,89 +29,89 @@ pub fn write<T: Write>(stream: T, font: &Font) -> Result<(), Error> {
 
 	let mut writer = new(stream);
 
-	try!(writer.entry(&Entry::StartFont(font.format().to_owned())));
-	try!(writer.entry(&Entry::Font(font.name().to_owned())));
-	try!(writer.entry(&Entry::Size(font.size().pt, font.size().x, font.size().y)));
+	writer.entry(&Entry::StartFont(font.format().to_owned()))?;
+	writer.entry(&Entry::Font(font.name().to_owned()))?;
+	writer.entry(&Entry::Size(font.size().pt, font.size().x, font.size().y))?;
 
 	if let Some(version) = font.version() {
-		try!(writer.entry(&Entry::ContentVersion(version.to_owned())));
+		writer.entry(&Entry::ContentVersion(version.to_owned()))?;
 	}
 
-	try!(writer.entry(&Entry::FontBoundingBox(font.bounds().clone())));
+	writer.entry(&Entry::FontBoundingBox(font.bounds().clone()))?;
 
 	if font.direction() != Direction::Default {
-		try!(writer.entry(&Entry::Direction(font.direction().clone())));
+		writer.entry(&Entry::Direction(font.direction().clone()))?;
 	}
 
 	if let Some(&(x, y)) = font.scalable_width() {
-		try!(writer.entry(&Entry::ScalableWidth(x, y)));
+		writer.entry(&Entry::ScalableWidth(x, y))?;
 	}
 
 	if let Some(&(x, y)) = font.device_width() {
-		try!(writer.entry(&Entry::DeviceWidth(x, y)));
+		writer.entry(&Entry::DeviceWidth(x, y))?;
 	}
 
 	if let Some(&(x, y)) = font.alternate_scalable_width() {
-		try!(writer.entry(&Entry::AlternateScalableWidth(x, y)));
+		writer.entry(&Entry::AlternateScalableWidth(x, y))?;
 	}
 
 	if let Some(&(x, y)) = font.alternate_device_width() {
-		try!(writer.entry(&Entry::AlternateDeviceWidth(x, y)));
+		writer.entry(&Entry::AlternateDeviceWidth(x, y))?;
 	}
 
 	if let Some(&(x, y)) = font.vector() {
-		try!(writer.entry(&Entry::Vector(x, y)));
+		writer.entry(&Entry::Vector(x, y))?;
 	}
 
 	if font.properties().len() > 0 {
-		try!(writer.entry(&Entry::StartProperties(font.properties().len())));
+		writer.entry(&Entry::StartProperties(font.properties().len()))?;
 
 		for (name, value) in font.properties() {
-			try!(writer.entry(&Entry::Property(name.clone(), value.clone())));
+			writer.entry(&Entry::Property(name.clone(), value.clone()))?;
 		}
 
-		try!(writer.entry(&Entry::EndProperties));
+		writer.entry(&Entry::EndProperties)?;
 	}
 
-	try!(writer.entry(&Entry::Chars(font.glyphs().len())));
+	writer.entry(&Entry::Chars(font.glyphs().len()))?;
 
 	for (codepoint, glyph) in font.glyphs() {
-		try!(writer.entry(&Entry::StartChar(glyph.name().to_owned())));
+		writer.entry(&Entry::StartChar(glyph.name().to_owned()))?;
 
-		try!(writer.entry(&Entry::Encoding(*codepoint)));
+		writer.entry(&Entry::Encoding(*codepoint))?;
 
 		if glyph.direction() != Direction::Default {
-			try!(writer.entry(&Entry::Direction(glyph.direction().clone())));
+			writer.entry(&Entry::Direction(glyph.direction().clone()))?;
 		}
 
 		if let Some(&(x, y)) = glyph.scalable_width() {
-			try!(writer.entry(&Entry::ScalableWidth(x, y)));
+			writer.entry(&Entry::ScalableWidth(x, y))?;
 		}
 
 		if let Some(&(x, y)) = glyph.device_width() {
-			try!(writer.entry(&Entry::DeviceWidth(x, y)));
+			writer.entry(&Entry::DeviceWidth(x, y))?;
 		}
 
 		if let Some(&(x, y)) = glyph.alternate_scalable_width() {
-			try!(writer.entry(&Entry::AlternateScalableWidth(x, y)));
+			writer.entry(&Entry::AlternateScalableWidth(x, y))?;
 		}
 
 		if let Some(&(x, y)) = glyph.alternate_device_width() {
-			try!(writer.entry(&Entry::AlternateDeviceWidth(x, y)));
+			writer.entry(&Entry::AlternateDeviceWidth(x, y))?;
 		}
 
 		if let Some(&(x, y)) = glyph.vector() {
-			try!(writer.entry(&Entry::Vector(x, y)));
+			writer.entry(&Entry::Vector(x, y))?;
 		}
 
-		try!(writer.entry(&Entry::BoundingBox(glyph.bounds().clone())));
+		writer.entry(&Entry::BoundingBox(glyph.bounds().clone()))?;
 
-		try!(writer.entry(&Entry::Bitmap(glyph.map().clone())));
+		writer.entry(&Entry::Bitmap(glyph.map().clone()))?;
 
-		try!(writer.entry(&Entry::EndChar));
+		writer.entry(&Entry::EndChar)?;
 	}
 
-	try!(writer.entry(&Entry::EndFont));
+	writer.entry(&Entry::EndFont)?;
 
 	Ok(())
 }
@@ -120,7 +120,7 @@ pub fn write<T: Write>(stream: T, font: &Font) -> Result<(), Error> {
 mod tests {
 	use std::str::from_utf8;
 
-	use {Entry, BoundingBox, Bitmap, Property, Direction, writer};
+	use crate::{Entry, BoundingBox, Bitmap, Property, Direction, writer};
 
 	pub fn assert(entry: Entry, string: &str) {
 		let mut output = Vec::new();

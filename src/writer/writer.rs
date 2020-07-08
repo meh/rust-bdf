@@ -1,10 +1,10 @@
 use std::io::{Write, BufWriter};
 
-use {Error, Entry, Property, Direction};
+use crate::{Error, Entry, Property, Direction};
 
 macro_rules! write {
 	($dst:expr, $($arg:tt)*) => (
-		try!($dst.write_all(format!($($arg)*).as_bytes()))
+		$dst.write_all(format!($($arg)*).as_bytes())?
 	)
 }
 
@@ -108,7 +108,7 @@ impl<T: Write> Writer<T> {
 
 					for x in 0 .. map.width() {
 						value <<= 1;
-						value  |= if map.get(x, y) { 1 } else { 0 };
+						value  |= map.get(x, y) as u64;
 					}
 
 					value <<= 8 - (map.width() % 8);

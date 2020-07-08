@@ -5,7 +5,7 @@ use std::io::Read;
 use std::fs::File;
 use std::path::Path;
 
-use {Error, Entry, Font, Glyph, font};
+use crate::{Error, Entry, Font, Glyph, font};
 
 /// Create a `Reader` from a `Read`.
 pub fn new<T: Read>(stream: T) -> Reader<T> {
@@ -14,7 +14,7 @@ pub fn new<T: Read>(stream: T) -> Reader<T> {
 
 /// Open a BDF file and read it into a `Font`.
 pub fn open<T: AsRef<Path>>(path: T) -> Result<Font, Error> {
-	read(try!(File::open(path)))
+	read(File::open(path)?)
 }
 
 /// Read a BDF stream into a `Font`.
@@ -29,7 +29,7 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 	let mut glyph = Glyph::default();
 
 	loop {
-		let entry = try!(reader.entry());
+		let entry = reader.entry()?;
 
 		if in_font {
 			if let Entry::EndFont = entry {
@@ -186,7 +186,7 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 
 #[cfg(test)]
 mod tests {
-	use {Entry, BoundingBox, Bitmap, Property, Direction, reader};
+	use crate::{Entry, BoundingBox, Bitmap, Property, Direction, reader};
 
 	pub fn assert(string: &str, entry: Entry) {
 		let input = reader::new(string.as_bytes()).last().unwrap();

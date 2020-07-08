@@ -1,7 +1,7 @@
 use std::io::{Read, BufRead, BufReader, Lines};
 use std::{char, u64};
 
-use {Error, Entry, BoundingBox, Bitmap, Property, Direction};
+use crate::{Error, Entry, BoundingBox, Bitmap, Property, Direction};
 
 /// The font reader.
 pub struct Reader<T: Read> {
@@ -25,7 +25,7 @@ impl<T: Read> From<T> for Reader<T> {
 impl<T: Read> Reader<T> {
 	/// Get the next entry.
 	pub fn entry(&mut self) -> Result<Entry, Error> {
-		let line = try!(try!(self.stream.next().ok_or(Error::End)));
+		let line = self.stream.next().ok_or(Error::End)??;
 
 		let (id, rest) = match line.find(' ') {
 			Some(n) =>
@@ -38,7 +38,7 @@ impl<T: Read> Reader<T> {
 		match id {
 			"COMMENT" => {
 				if let Some(rest) = rest {
-					Ok(Entry::Comment(::property::extract(rest)))
+					Ok(Entry::Comment(crate::property::extract(rest)))
 				}
 				else {
 					Ok(Entry::Comment("".to_owned()))
@@ -72,9 +72,9 @@ impl<T: Read> Reader<T> {
 					}
 
 					Ok(Entry::Size(
-						try!(split[0].parse()),
-						try!(split[1].parse()),
-						try!(split[2].parse())))
+						split[0].parse()?,
+						split[1].parse()?,
+						split[2].parse()?))
 				}
 				else {
 					Err(Error::MissingValue(id.to_owned()))
@@ -90,11 +90,11 @@ impl<T: Read> Reader<T> {
 					}
 
 					let bbx = BoundingBox {
-						width:  try!(split[0].parse()),
-						height: try!(split[1].parse()),
+						width:  split[0].parse()?,
+						height: split[1].parse()?,
 
-						x: try!(split[2].parse()),
-						y: try!(split[3].parse())
+						x: split[2].parse()?,
+						y: split[3].parse()?
 					};
 
 					self.default = Some(bbx);
@@ -117,7 +117,7 @@ impl<T: Read> Reader<T> {
 
 			"CHARS" => {
 				if let Some(rest) = rest {
-					Ok(Entry::Chars(try!(rest.parse())))
+					Ok(Entry::Chars(rest.parse()?))
 				}
 				else {
 					Err(Error::MissingValue(id.to_owned()))
@@ -136,7 +136,7 @@ impl<T: Read> Reader<T> {
 			"ENCODING" => {
 				if let Some(rest) = rest {
 					Ok(Entry::Encoding(
-						try!(char::from_u32(try!(rest.parse())).ok_or(Error::InvalidCodepoint))))
+						char::from_u32(rest.parse()?).ok_or(Error::InvalidCodepoint)?))
 				}
 				else {
 					Err(Error::MissingValue(id.to_owned()))
@@ -166,8 +166,8 @@ impl<T: Read> Reader<T> {
 					}
 
 					Ok(Entry::ScalableWidth(
-						try!(split[0].parse()),
-						try!(split[1].parse())))
+						split[0].parse()?,
+						split[1].parse()?))
 				}
 				else {
 					Err(Error::MissingValue(id.to_owned()))
@@ -183,8 +183,8 @@ impl<T: Read> Reader<T> {
 					}
 
 					Ok(Entry::DeviceWidth(
-						try!(split[0].parse()),
-						try!(split[1].parse())))
+						split[0].parse()?,
+						split[1].parse()?))
 				}
 				else {
 					Err(Error::MissingValue(id.to_owned()))
@@ -200,8 +200,8 @@ impl<T: Read> Reader<T> {
 					}
 
 					Ok(Entry::AlternateScalableWidth(
-						try!(split[0].parse()),
-						try!(split[1].parse())))
+						split[0].parse()?,
+						split[1].parse()?))
 				}
 				else {
 					Err(Error::MissingValue(id.to_owned()))
@@ -217,8 +217,8 @@ impl<T: Read> Reader<T> {
 					}
 
 					Ok(Entry::AlternateDeviceWidth(
-						try!(split[0].parse()),
-						try!(split[1].parse())))
+						split[0].parse()?,
+						split[1].parse()?))
 				}
 				else {
 					Err(Error::MissingValue(id.to_owned()))
@@ -234,8 +234,8 @@ impl<T: Read> Reader<T> {
 					}
 
 					Ok(Entry::Vector(
-						try!(split[0].parse()),
-						try!(split[1].parse())))
+						split[0].parse()?,
+						split[1].parse()?))
 				}
 				else {
 					Err(Error::MissingValue(id.to_owned()))
@@ -251,11 +251,11 @@ impl<T: Read> Reader<T> {
 					}
 
 					let bbx = BoundingBox {
-						width: try!(split[0].parse()),
-						height: try!(split[1].parse()),
+						width: split[0].parse()?,
+						height: split[1].parse()?,
 
-						x: try!(split[2].parse()),
-						y: try!(split[3].parse())
+						x: split[2].parse()?,
+						y: split[3].parse()?
 					};
 
 					self.current = Some(bbx);
@@ -282,7 +282,7 @@ impl<T: Read> Reader<T> {
 				let mut map  = Bitmap::new(width, height);
 
 				for (y, row) in rows.into_iter().enumerate() {
-					let row = try!(u64::from_str_radix(try!(row).as_ref(), 16)) >> ((8 - (width % 8)) % 8);
+					let row = u64::from_str_radix(row?.as_ref(), 16)? >> ((8 - (width % 8)) % 8);
 
 					for x in 0 .. width {
 						map.set(width - x - 1, y as u32, ((row >> x) & 1) == 1);
@@ -304,7 +304,7 @@ impl<T: Read> Reader<T> {
 
 			"STARTPROPERTIES" => {
 				if let Some(rest) = rest {
-					Ok(Entry::StartProperties(try!(rest.parse())))
+					Ok(Entry::StartProperties(rest.parse()?))
 				}
 				else {
 					Err(Error::MissingValue(id.to_owned()))

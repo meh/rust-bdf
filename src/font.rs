@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use {Glyph, Property, BoundingBox, Direction};
+use crate::{Glyph, Property, BoundingBox, Direction};
 
 /// Size of a font.
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]

@@ -1,5 +1,4 @@
 use std::fmt;
-use std::error;
 use std::io;
 use std::num;
 
@@ -51,42 +50,36 @@ impl From<num::ParseIntError> for Error {
 
 impl fmt::Display for Error {
 	fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-		f.write_str(error::Error::description(self))
-	}
-}
-
-impl error::Error for Error {
-	fn description(&self) -> &str {
 		match self {
 			&Error::IO(ref err) =>
-				err.description(),
+				err.fmt(f),
 
 			&Error::Parse(ref err) =>
-				error::Error::description(err),
+				err.fmt(f),
 
 			&Error::MissingVersion =>
-				"Missing version from STARTFONT",
+				write!(f, "Missing version from STARTFONT"),
 
 			&Error::MissingBoundingBox =>
-				"Missing bounding box.",
+				write!(f, "Missing bounding box."),
 
 			&Error::MissingValue(..) =>
-				"Missing value for property.",
+				write!(f, "Missing value for property."),
 
 			&Error::InvalidCodepoint =>
-				"An invalid codepoint has been found.",
+				write!(f, "An invalid codepoint has been found."),
 
 			&Error::End =>
-				"End of file reached.",
+				write!(f, "End of file reached."),
 
 			&Error::MalformedFont =>
-				"Malformed font definition.",
+				write!(f, "Malformed font definition."),
 
 			&Error::MalformedProperties =>
-				"Malformed properties definition.",
+				write!(f, "Malformed properties definition."),
 
 			&Error::MalformedChar =>
-				"Malformed character definition.",
+				write!(f, "Malformed character definition."),
 		}
 	}
 }
