@@ -111,7 +111,7 @@ impl<T: Write> Writer<T> {
 						value  |= map.get(x, y) as u64;
 					}
 
-					value <<= 8 - (map.width() % 8);
+					value <<= (-(map.width() as i32)).rem_euclid(8);
 
 					let hex = format!("{:X}\n", value);
 
