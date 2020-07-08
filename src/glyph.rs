@@ -1,5 +1,5 @@
 use std::ops::{Deref, DerefMut};
-use {BoundingBox, Bitmap, Direction};
+use crate::{BoundingBox, Bitmap, Direction};
 
 /// A font glyph.
 #[derive(Debug)]
