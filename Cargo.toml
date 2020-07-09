@@ -12,3 +12,4 @@ keywords    = ["font", "bdf"]
 
 [dependencies]
 bit-set = "0.3"
+thiserror = "1.0.20"
