@@ -108,18 +108,13 @@ impl<T: Write> Writer<T> {
 
 					for x in 0 .. map.width() {
 						value <<= 1;
-						value  |= map.get(x, y) as u64;
+						value |= map.get(x, y) as u64;
 					}
 
 					value <<= (-(map.width() as i32)).rem_euclid(8);
 
-					let hex = format!("{:X}\n", value);
-
-					if (hex.len() - 1) % 2 != 0 {
-						write!(self.stream, "0");
-					}
-
-					write!(self.stream, "{}", hex);
+					let hex_width = ((map.width() + 7) >> 3 << 1) as usize;
+					write!(self.stream, "{:0<1$X}\n", value, hex_width);
 				}
 			},
 
