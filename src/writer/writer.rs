@@ -114,7 +114,7 @@ impl<T: Write> Writer<T> {
 					value <<= (-(map.width() as i32)).rem_euclid(8);
 
 					let hex_width = ((map.width() + 7) >> 3 << 1) as usize;
-					write!(self.stream, "{:0<1$X}\n", value, hex_width);
+					write!(self.stream, "{:0>1$X}\n", value, hex_width);
 				}
 			},
 
