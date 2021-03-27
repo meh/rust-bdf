@@ -25,7 +25,10 @@ impl<T: Read> From<T> for Reader<T> {
 impl<T: Read> Reader<T> {
     /// Get the next entry.
     pub fn entry(&mut self) -> Result<Entry, Error> {
-        let line = self.stream.next().ok_or(Error::End)??;
+        let mut line = String::new();
+        while line.is_empty() {
+            line = self.stream.next().ok_or(Error::End)??;
+        }
 
         let (id, rest) = match line.find(' ') {
             Some(n) => (&line[0..n], Some((&line[n..]).trim())),
