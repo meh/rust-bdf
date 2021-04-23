@@ -2,7 +2,7 @@ use std::ops::{Deref, DerefMut};
 use crate::{BoundingBox, Bitmap, Direction};
 
 /// A font glyph.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Glyph {
 	name:      Option<String>,
 	codepoint: Option<char>,

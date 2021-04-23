@@ -16,7 +16,7 @@ pub struct Size {
 }
 
 /// A BDF font.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Font {
 	format: String,
 
