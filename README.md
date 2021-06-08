@@ -1,41 +1,42 @@
-bdf
-===
-[![Build Status](https://travis-ci.org/meh/rust-bdf.svg?branch=master)](https://travis-ci.org/meh/rust-bdf)
+# bdf
 
-BDF handling library.
+[![Build & Test](https://github.com/meh/rust-bdf/actions/workflows/rust.yml/badge.svg)](https://github.com/meh/rust-bdf/actions/workflows/rust.yml)
 
-```toml
-[dependencies]
-bdf = "*"
-```
+BDF font handler
 
-Example
--------
-This example will draw a given glyph in the given font.
+This crate allows you to read and write BDF fonts in Rust.
+
+
+## Example
+
+This example will draw a given glyph in your terminal using the given font.
+
 
 ```rust
-extern crate bdf;
-
+use std::char;
 use std::env;
 use std::process::exit;
-use std::char;
 
-fn main() {
-	let font      = bdf::open(env::args().nth(1).expect("missing font file")).unwrap();
-	let codepoint = char::from_u32(env::args().nth(2).expect("missing codepoint").parse().unwrap()).expect("invalid codepoint");
-	let glyph     = font.glyphs().get(&codepoint).unwrap_or_else(|| exit(1));
+let font = bdf::open(env::args().nth(1).expect("missing font file")).unwrap();
+let codepoint = char::from_u32(
+    env::args()
+        .nth(2)
+        .expect("missing codepoint")
+        .parse()
+        .unwrap(),
+)
+.expect("invalid codepoint");
+let glyph = font.glyphs().get(&codepoint).unwrap_or_else(|| exit(1));
 
-	for y in 0 .. glyph.height() {
-		for x in 0 .. glyph.width() {
-			if glyph.get(x, y) {
-				print!("██");
-			}
-			else {
-				print!("  ");
-			}
-		}
-
-		print!("\n");
-	}
+for y in 0..glyph.height() {
+    for x in 0..glyph.width() {
+        if glyph.get(x, y) {
+            print!("██");
+        } else {
+            print!("  ");
+        }
+    }
+    print!("\n");
 }
 ```
+

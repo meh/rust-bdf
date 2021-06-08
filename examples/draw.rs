@@ -1,5 +1,3 @@
-extern crate bdf;
-
 use std::env;
 use std::process::exit;
 
