@@ -1,0 +1,98 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ master, staging, trying ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  # Disable debug info ( for build speed ) and deny warnings
+  RUSTFLAGS: "-C debuginfo=0 -D warnings"
+  # Enable Cargo color
+  CARGO_TERM_COLOR: always
+  # Disable incremental builds ( because we only build once in CI )
+  CARGO_INCREMENTAL: 0
+
+  # We don't need debug symbols ( this makes build faster )
+  CARGO_PROFILE_DEV_DEBUG: 0
+  CARGO_PROFILE_TEST_DEBUG: 0
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cargo Registry Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: cargo-registry
+
+      - name: Rustfmt
+        run: cargo fmt --all -- --check
+
+      # No need to run cargo check because clippy will check it
+      - name: Clippy
+        run: cargo clippy
+
+  build-and-test-native:
+    needs: check
+    strategy:
+      matrix:
+        os: [ 'windows-latest', 'ubuntu-latest', 'macos-latest' ]
+        toolchain: [ 'stable', 'nightly' ]
+    continue-on-error: ${{ matrix.toolchain == 'nightly' }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cargo Registry Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: cargo-registry
+
+      - name: Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+
+      - name: Build
+        run: cargo build --verbose
+
+      - name: Test
+        run: cargo test --verbose
+
+  build-wasm:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cargo Registry Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: cargo-registry
+
+      - name: Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+
+      - name: Build
+        run: cargo build --verbose --target wasm32-unknown-unknown
