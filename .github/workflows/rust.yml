@@ -70,7 +70,7 @@ jobs:
         run: cargo build --verbose
 
       - name: Test
-        run: cargo test --verbose
+        run: cargo test --features test-remote-fonts --verbose
 
   build-wasm:
     needs: check

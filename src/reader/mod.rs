@@ -27,10 +27,22 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
     let mut in_props = false;
     let mut in_char = false;
 
+    let mut skip_current_char = false;
+
     let mut glyph = Glyph::default();
 
     loop {
-        let entry = reader.entry()?;
+        let entry = match reader.entry() {
+            Ok(entry) => entry,
+            // The codepoint could not be represented as a rust `char`
+            Err(Error::InvalidCodepoint { .. }) => {
+                // TODO: Log a warning or provide other programatic way of returning warnings about
+                // invalid codepoints.
+                skip_current_char = true;
+                continue;
+            }
+            Err(e) => return Err(e),
+        };
 
         if in_font {
             if let Entry::EndFont = entry {
@@ -88,11 +100,15 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 
             if in_char {
                 if let Entry::EndChar = entry {
-                    if !glyph.validate() {
-                        return Err(Error::MalformedChar);
-                    }
+                    if skip_current_char {
+                        skip_current_char = false;
+                    } else {
+                        if !glyph.validate() {
+                            return Err(Error::MalformedChar);
+                        }
 
-                    font.glyphs_mut().insert(glyph.codepoint(), glyph);
+                        font.glyphs_mut().insert(glyph.codepoint(), glyph);
+                    }
 
                     in_char = false;
                     glyph = Glyph::default();

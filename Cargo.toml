@@ -1,6 +1,6 @@
 [package]
 name    = "bdf"
-version = "0.5.5"
+version = "0.7.0"
 edition = "2018"
 
 authors = ["meh. <meh@schizofreni.co>"]
@@ -10,6 +10,16 @@ description = "BDF format handling."
 repository  = "https://github.com/meh/rust-bdf"
 keywords    = ["font", "bdf"]
 
+[features]
+default = []
+
+# This feature is used for testing only and allows downloading fonts from GitHub
+# to use as parsing test-cases
+test-remote-fonts = []
+
 [dependencies]
-bit-set = "0.3"
+bit-set = "0.5.2"
 thiserror = "1.0.20"
+
+[dev-dependencies]
+reqwest = { version = "0.11.3", features = ["blocking"] }
