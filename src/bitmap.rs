@@ -22,8 +22,8 @@ impl Bitmap {
     #[inline]
     pub fn new(width: u32, height: u32) -> Self {
         Bitmap {
-            width: width,
-            height: height,
+            width,
+            height,
 
             bits: BitSet::new(),
         }

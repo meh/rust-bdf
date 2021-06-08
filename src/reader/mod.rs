@@ -1,3 +1,4 @@
+#[allow(clippy::module_inception)]
 mod reader;
 pub use self::reader::Reader;
 
@@ -133,7 +134,7 @@ pub fn read<T: Read>(stream: T) -> Result<Font, Error> {
 
                 Entry::Font(name) => font.set_name(name),
 
-                Entry::Size(pt, x, y) => font.set_size(font::Size { pt: pt, x: x, y: y }),
+                Entry::Size(pt, x, y) => font.set_size(font::Size { pt, x, y }),
 
                 Entry::FontBoundingBox(bbx) => font.set_bounds(bbx),
 

@@ -1,3 +1,5 @@
+#![allow(clippy::write_with_newline)]
+
 use std::io::{BufWriter, Write};
 
 use crate::{Direction, Entry, Error, Property};
@@ -24,53 +26,53 @@ impl<T: Write> From<T> for Writer<T> {
 impl<T: Write> Writer<T> {
     /// Write an entry.
     pub fn entry(&mut self, entry: &Entry) -> Result<(), Error> {
-        match entry {
-            &Entry::StartFont(ref string) => write!(self.stream, "STARTFONT {}\n", string),
+        match *entry {
+            Entry::StartFont(ref string) => write!(self.stream, "STARTFONT {}\n", string),
 
-            &Entry::Comment(ref string) => write!(
+            Entry::Comment(ref string) => write!(
                 self.stream,
                 "COMMENT \"{}\"\n",
                 string.replace("\"", "\"\"")
             ),
 
-            &Entry::ContentVersion(ref string) => {
+            Entry::ContentVersion(ref string) => {
                 write!(self.stream, "CONTENTVERSION {}\n", string)
             }
 
-            &Entry::Font(ref string) => write!(self.stream, "FONT {}\n", string),
+            Entry::Font(ref string) => write!(self.stream, "FONT {}\n", string),
 
-            &Entry::Size(pt, x, y) => write!(self.stream, "SIZE {} {} {}\n", pt, x, y),
+            Entry::Size(pt, x, y) => write!(self.stream, "SIZE {} {} {}\n", pt, x, y),
 
-            &Entry::Chars(chars) => write!(self.stream, "CHARS {}\n", chars),
+            Entry::Chars(chars) => write!(self.stream, "CHARS {}\n", chars),
 
-            &Entry::FontBoundingBox(ref bbx) => write!(
+            Entry::FontBoundingBox(ref bbx) => write!(
                 self.stream,
                 "FONTBOUNDINGBOX {} {} {} {}\n",
                 bbx.width, bbx.height, bbx.x, bbx.y
             ),
 
-            &Entry::EndFont => write!(self.stream, "ENDFONT\n"),
+            Entry::EndFont => write!(self.stream, "ENDFONT\n"),
 
-            &Entry::StartProperties(len) => write!(self.stream, "STARTPROPERTIES {}\n", len),
+            Entry::StartProperties(len) => write!(self.stream, "STARTPROPERTIES {}\n", len),
 
-            &Entry::Property(ref name, ref value) => match value {
-                &Property::String(ref string) => write!(
+            Entry::Property(ref name, ref value) => match *value {
+                Property::String(ref string) => write!(
                     self.stream,
                     "{} \"{}\"\n",
                     name,
                     string.replace("\"", "\"\"")
                 ),
 
-                &Property::Integer(value) => write!(self.stream, "{} {}\n", name, value),
+                Property::Integer(value) => write!(self.stream, "{} {}\n", name, value),
             },
 
-            &Entry::EndProperties => write!(self.stream, "ENDPROPERTIES\n"),
+            Entry::EndProperties => write!(self.stream, "ENDPROPERTIES\n"),
 
-            &Entry::StartChar(ref name) => write!(self.stream, "STARTCHAR {}\n", name),
+            Entry::StartChar(ref name) => write!(self.stream, "STARTCHAR {}\n", name),
 
-            &Entry::Encoding(value) => write!(self.stream, "ENCODING {}\n", value as u32),
+            Entry::Encoding(value) => write!(self.stream, "ENCODING {}\n", value as u32),
 
-            &Entry::Direction(direction) => match direction {
+            Entry::Direction(direction) => match direction {
                 Direction::Default => write!(self.stream, "METRICSSET 0\n"),
 
                 Direction::Alternate => write!(self.stream, "METRICSSET 1\n"),
@@ -78,23 +80,23 @@ impl<T: Write> Writer<T> {
                 Direction::Both => write!(self.stream, "METRICSSET 2\n"),
             },
 
-            &Entry::ScalableWidth(x, y) => write!(self.stream, "SWIDTH {} {}\n", x, y),
+            Entry::ScalableWidth(x, y) => write!(self.stream, "SWIDTH {} {}\n", x, y),
 
-            &Entry::DeviceWidth(x, y) => write!(self.stream, "DWIDTH {} {}\n", x, y),
+            Entry::DeviceWidth(x, y) => write!(self.stream, "DWIDTH {} {}\n", x, y),
 
-            &Entry::AlternateScalableWidth(x, y) => write!(self.stream, "SWIDTH1 {} {}\n", x, y),
+            Entry::AlternateScalableWidth(x, y) => write!(self.stream, "SWIDTH1 {} {}\n", x, y),
 
-            &Entry::AlternateDeviceWidth(x, y) => write!(self.stream, "DWIDTH1 {} {}\n", x, y),
+            Entry::AlternateDeviceWidth(x, y) => write!(self.stream, "DWIDTH1 {} {}\n", x, y),
 
-            &Entry::Vector(x, y) => write!(self.stream, "VVECTOR {} {}\n", x, y),
+            Entry::Vector(x, y) => write!(self.stream, "VVECTOR {} {}\n", x, y),
 
-            &Entry::BoundingBox(ref bbx) => write!(
+            Entry::BoundingBox(ref bbx) => write!(
                 self.stream,
                 "BBX {} {} {} {}\n",
                 bbx.width, bbx.height, bbx.x, bbx.y
             ),
 
-            &Entry::Bitmap(ref map) => {
+            Entry::Bitmap(ref map) => {
                 write!(self.stream, "BITMAP\n");
 
                 for y in 0..map.height() {
@@ -112,9 +114,9 @@ impl<T: Write> Writer<T> {
                 }
             }
 
-            &Entry::EndChar => write!(self.stream, "ENDCHAR\n"),
+            Entry::EndChar => write!(self.stream, "ENDCHAR\n"),
 
-            &Entry::Unknown(..) => unreachable!(),
+            Entry::Unknown(..) => unreachable!(),
         }
 
         Ok(())
