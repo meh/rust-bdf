@@ -257,11 +257,7 @@ impl<T: Read> Reader<T> {
                     return Err(Error::MissingBoundingBox);
                 };
 
-                let rows = self
-                    .stream
-                    .by_ref()
-                    .take(height as usize)
-                    .collect::<Vec<_>>();
+                let rows = self.stream.by_ref().take(height as usize);
                 let mut map = Bitmap::new(width, height);
 
                 for (y, row) in rows.into_iter().enumerate() {

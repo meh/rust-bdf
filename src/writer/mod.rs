@@ -1,3 +1,4 @@
+#[allow(clippy::module_inception)]
 mod writer;
 pub use self::writer::Writer;
 
@@ -37,10 +38,10 @@ pub fn write<T: Write>(stream: T, font: &Font) -> Result<(), Error> {
         writer.entry(&Entry::ContentVersion(version.to_owned()))?;
     }
 
-    writer.entry(&Entry::FontBoundingBox(font.bounds().clone()))?;
+    writer.entry(&Entry::FontBoundingBox(*font.bounds()))?;
 
     if font.direction() != Direction::Default {
-        writer.entry(&Entry::Direction(font.direction().clone()))?;
+        writer.entry(&Entry::Direction(font.direction()))?;
     }
 
     if let Some(&(x, y)) = font.scalable_width() {
@@ -63,7 +64,7 @@ pub fn write<T: Write>(stream: T, font: &Font) -> Result<(), Error> {
         writer.entry(&Entry::Vector(x, y))?;
     }
 
-    if font.properties().len() > 0 {
+    if !font.properties().is_empty() {
         writer.entry(&Entry::StartProperties(font.properties().len()))?;
 
         for (name, value) in font.properties() {
@@ -81,7 +82,7 @@ pub fn write<T: Write>(stream: T, font: &Font) -> Result<(), Error> {
         writer.entry(&Entry::Encoding(*codepoint))?;
 
         if glyph.direction() != Direction::Default {
-            writer.entry(&Entry::Direction(glyph.direction().clone()))?;
+            writer.entry(&Entry::Direction(glyph.direction()))?;
         }
 
         if let Some(&(x, y)) = glyph.scalable_width() {
@@ -104,7 +105,7 @@ pub fn write<T: Write>(stream: T, font: &Font) -> Result<(), Error> {
             writer.entry(&Entry::Vector(x, y))?;
         }
 
-        writer.entry(&Entry::BoundingBox(glyph.bounds().clone()))?;
+        writer.entry(&Entry::BoundingBox(*glyph.bounds()))?;
 
         writer.entry(&Entry::Bitmap(glyph.map().clone()))?;
 
@@ -129,6 +130,9 @@ mod tests {
             let mut writer = writer::new(&mut output);
             writer.entry(&entry).unwrap();
         }
+
+        println!("in: {}", from_utf8(&output).unwrap());
+        println!("out: {}", &string);
 
         assert_eq!(from_utf8(&output).unwrap(), string);
     }
